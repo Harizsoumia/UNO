@@ -1,85 +1,132 @@
-JMenuBar menuBar = new JMenuBar() {
-    @Override
-    protected void paintComponent(Graphics g) {
-        Graphics2D g2 = (Graphics2D) g;
-        g2.setColor(new Color(135, 206, 235)); // bleu ciel
-        g2.fillRoundRect(0, 0, getWidth(), getHeight(), 30, 30);
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.plaf.basic.BasicMenuItemUI;
+import javax.swing.table.*;
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.text.*;
+
+public class ComposantsPersonnalises {
+
+    // ======== MENU ========
+    public static JMenuBar creerMenuBarPersonnalise() {
+        JMenuBar menuBar = new JMenuBar() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setColor(new Color(135, 206, 235));  // Fond bleu ciel
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+            }
+        };
+        menuBar.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);  // RTL
+        return menuBar;
     }
-};
 
-menuBar.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
-
-JMenu menu = new JMenu("القائمة"); // arabe
-menu.setFont(new Font("Tahoma", Font.PLAIN, 18));
-
-JMenuItem item = new JMenuItem("جديد");
-item.setFont(new Font("Tahoma", Font.PLAIN, 18));
-item.setIcon(new ImageIcon("icons/play.png"));
-
-JTextField textField = new JTextField("الاسم");
-textField.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
-textField.setFont(new Font("Tahoma", Font.PLAIN, 18));
-
-textField = new JTextField() {
-    @Override
-    protected void paintComponent(Graphics g) {
-        Graphics2D g2 = (Graphics2D) g;
-        g2.setColor(new Color(135, 206, 235)); // arrière-plan personnalisé
-        g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20); // coins arrondis
-        super.paintComponent(g);
+    public static JMenu creerMenu(String titre) {
+        JMenu menu = new JMenu(titre);
+        menu.setFont(new Font("Tahoma", Font.PLAIN, 18));
+        menu.setDelay(100);  // Animation fluide
+        return menu;
     }
-};
-textField.setOpaque(false);
-textField.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
 
-JTextArea textArea = new JTextArea("مرحبا");
-textArea.setFont(new Font("Tahoma", Font.PLAIN, 18));
-textArea.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
-
-textArea = new JTextArea() {
-    @Override
-    protected void paintComponent(Graphics g) {
-        Graphics2D g2 = (Graphics2D) g;
-        g2.setColor(new Color(135, 206, 235));
-        g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
-        super.paintComponent(g);
+    public static JMenuItem creerMenuItem(String texte, String cheminIcone) {
+        JMenuItem item = new JMenuItem(texte);
+        item.setFont(new Font("Tahoma", Font.PLAIN, 18));
+        item.setIcon(new ImageIcon(cheminIcone));
+        item.setUI(new BasicMenuItemUI());  // Pour effet hover fluide
+        return item;
     }
-};
-textArea.setOpaque(false);
 
-JTableHeader header = table.getTableHeader();
-header.setFont(new Font("Tahoma", Font.BOLD, 18));
-header.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
+    // ======== TEXTFIELD ========
+    public static JTextField creerTextFieldPersonnalise(String placeholder) {
+        JTextField textField = new JTextField(placeholder) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setColor(new Color(230, 240, 255));
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+                super.paintComponent(g);
+            }
+        };
+        textField.setFont(new Font("Tahoma", Font.PLAIN, 18));
+        textField.setBorder(new EmptyBorder(5, 10, 5, 10));
+        textField.setOpaque(false);
+        textField.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
 
-header = new JTableHeader(table.getColumnModel()) {
-    @Override
-    protected void paintComponent(Graphics g) {
-        Graphics2D g2 = (Graphics2D) g;
-        g2.setColor(new Color(135, 206, 235));
-        g2.fillRoundRect(0, 0, getWidth(), getHeight(), 30, 30);
-        super.paintComponent(g);
+        // Curseur personnalisé
+        Caret curseur = new DefaultCaret() {
+            @Override
+            protected synchronized void damage(Rectangle r) {
+                if (r != null) {
+                    x = r.x;
+                    y = r.y;
+                    width = 2;
+                    height = r.height;
+                    repaint();
+                }
+            }
+        };
+        curseur.setBlinkRate(500);
+        textField.setCaret(curseur);
+        return textField;
     }
-};
 
-table.setFont(new Font("Tahoma", Font.PLAIN, 18));
-table.setRowHeight(30);
-table.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
-
-table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
-    @Override
-    public Component getTableCellRendererComponent(JTable table, Object value,
-        boolean isSelected, boolean hasFocus, int row, int column) {
-
-        JLabel cell = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-        cell.setFont(new Font("Tahoma", Font.PLAIN, 18));
-        cell.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
-
-        if (!isSelected) {
-            cell.setBackground(row % 2 == 0 ? new Color(230, 240, 255) : Color.WHITE);
-        } else {
-            cell.setBackground(new Color(180, 200, 255));
-        }
-
-        return cell;
+    // ======== TEXTAREA ========
+    public static JTextArea creerTextAreaPersonnalise() {
+        JTextArea textArea = new JTextArea() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setColor(new Color(220, 230, 250));
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+                super.paintComponent(g);
+            }
+        };
+        textArea.setFont(new Font("Tahoma", Font.PLAIN, 18));
+        textArea.setOpaque(false);
+        textArea.setBorder(new EmptyBorder(10, 10, 10, 10));
+        textArea.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
+        return textArea;
     }
-});
+
+    // ======== TABLE ========
+    public static JTable creerTablePersonnalisee(TableModel model) {
+        JTable table = new JTable(model);
+        table.setFont(new Font("Tahoma", Font.PLAIN, 18));
+        table.setRowHeight(32);
+        table.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
+
+        // Header personnalisé
+        JTableHeader header = new JTableHeader(table.getColumnModel()) {
+            @Override
+            protected void paintComponent(Graphics g) {
+                Graphics2D g2 = (Graphics2D) g;
+                g2.setColor(new Color(135, 206, 235));
+                g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+                super.paintComponent(g);
+            }
+        };
+        header.setFont(new Font("Tahoma", Font.BOLD, 18));
+        header.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
+        table.setTableHeader(header);
+
+        // Couleurs zébrées
+        table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value,
+                                                           boolean isSelected, boolean hasFocus, int row, int column) {
+                JLabel cell = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                cell.setFont(new Font("Tahoma", Font.PLAIN, 18));
+                cell.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
+                cell.setBackground(!isSelected
+                        ? (row % 2 == 0 ? new Color(240, 245, 255) : Color.WHITE)
+                        : new Color(180, 200, 255));
+                return cell;
+            }
+        });
+
+        // Tri visuel
+        table.setRowSorter(new TableRowSorter<>(model));
+        return table;
+    }
+}
