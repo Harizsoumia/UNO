@@ -1,0 +1,85 @@
+JMenuBar menuBar = new JMenuBar() {
+    @Override
+    protected void paintComponent(Graphics g) {
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setColor(new Color(135, 206, 235)); // bleu ciel
+        g2.fillRoundRect(0, 0, getWidth(), getHeight(), 30, 30);
+    }
+};
+
+menuBar.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
+
+JMenu menu = new JMenu("القائمة"); // arabe
+menu.setFont(new Font("Tahoma", Font.PLAIN, 18));
+
+JMenuItem item = new JMenuItem("جديد");
+item.setFont(new Font("Tahoma", Font.PLAIN, 18));
+item.setIcon(new ImageIcon("icons/play.png"));
+
+JTextField textField = new JTextField("الاسم");
+textField.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
+textField.setFont(new Font("Tahoma", Font.PLAIN, 18));
+
+textField = new JTextField() {
+    @Override
+    protected void paintComponent(Graphics g) {
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setColor(new Color(135, 206, 235)); // arrière-plan personnalisé
+        g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20); // coins arrondis
+        super.paintComponent(g);
+    }
+};
+textField.setOpaque(false);
+textField.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+
+JTextArea textArea = new JTextArea("مرحبا");
+textArea.setFont(new Font("Tahoma", Font.PLAIN, 18));
+textArea.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
+
+textArea = new JTextArea() {
+    @Override
+    protected void paintComponent(Graphics g) {
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setColor(new Color(135, 206, 235));
+        g2.fillRoundRect(0, 0, getWidth(), getHeight(), 20, 20);
+        super.paintComponent(g);
+    }
+};
+textArea.setOpaque(false);
+
+JTableHeader header = table.getTableHeader();
+header.setFont(new Font("Tahoma", Font.BOLD, 18));
+header.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
+
+header = new JTableHeader(table.getColumnModel()) {
+    @Override
+    protected void paintComponent(Graphics g) {
+        Graphics2D g2 = (Graphics2D) g;
+        g2.setColor(new Color(135, 206, 235));
+        g2.fillRoundRect(0, 0, getWidth(), getHeight(), 30, 30);
+        super.paintComponent(g);
+    }
+};
+
+table.setFont(new Font("Tahoma", Font.PLAIN, 18));
+table.setRowHeight(30);
+table.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
+
+table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
+    @Override
+    public Component getTableCellRendererComponent(JTable table, Object value,
+        boolean isSelected, boolean hasFocus, int row, int column) {
+
+        JLabel cell = (JLabel) super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+        cell.setFont(new Font("Tahoma", Font.PLAIN, 18));
+        cell.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
+
+        if (!isSelected) {
+            cell.setBackground(row % 2 == 0 ? new Color(230, 240, 255) : Color.WHITE);
+        } else {
+            cell.setBackground(new Color(180, 200, 255));
+        }
+
+        return cell;
+    }
+});
