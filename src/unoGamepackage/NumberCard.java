@@ -13,10 +13,6 @@ public class NumberCard extends Card {
         return this.color == topCard.getColor() || topCard instanceof NumberCard && ((NumberCard) topCard).value == this.value;
     }
 
-    @Override
-    public void applyEffect(Game game, Player player) {
-        // No effect for number cards
-    }
 
     @Override
     public String toString() {

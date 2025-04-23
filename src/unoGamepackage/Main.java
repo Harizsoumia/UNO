@@ -14,6 +14,7 @@ public class Main {
 
         if (numPlayers < 2 || numPlayers > 4) {
             System.out.println("Invalid number of players. Exiting...");
+            scanner.close();
             return;
         }
 

@@ -6,11 +6,6 @@ public class ReverseCard extends ActionCard {
     }
 
     @Override
-    public void applyEffect(Game game, Player player) {
-        game.reverseDirection(); // Reverses the turn direction
-        System.out.println(player.getName() + " played Reverse!");
-    }
-    @Override
     public String toString() {
         return color + " REVERSE";
     }

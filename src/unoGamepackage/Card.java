@@ -13,8 +13,14 @@ public abstract class Card {
 
     public abstract boolean canBePlayedOn(Card topCard);
 
-    public abstract void applyEffect(Game game,Player player);
-
     public abstract String toString();
+    public String getImagePath() {
+        return "images/" + color + "_" + value + ".png";
+    }
+    
+    // For custom drawing
+    public void draw(Graphics g, int x, int y, int width, int height) {
+        // Drawing code here
+    }
 }
 

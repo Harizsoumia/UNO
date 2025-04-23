@@ -1,6 +1,7 @@
 package unoGamepackage;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class Player {
     private final String name;
@@ -15,13 +16,12 @@ public class Player {
         return name;
     }
 
-    public List<Card> getHand() {
-        return hand;
-    }
 
-    public void drawCard(Deck deck) {
+    public void drawCard(Player player) {
         if (!deck.isEmpty()) {
-            hand.add(deck.drawCard());
+            Card drawn = deck.drawCard();
+            player.addCard(drawn);
+            notifyCardDrawn(player, drawn);
         } else {
             throw new IllegalStateException("Cannot draw from an empty deck.");
         }
@@ -35,15 +35,30 @@ public class Player {
         hand.remove(card);
     }
 
-    public Card playCard(Card topCard, Card chosenCard) {
+    public Optional<Card> playCard(Card topCard, Card chosenCard) {
         if (hand.contains(chosenCard) && chosenCard.canBePlayedOn(topCard)) {
             hand.remove(chosenCard);
-            return chosenCard;
+            return Optional.of(chosenCard);
         }
-        return null; // Invalid move
+        return Optional.empty(); // No valid move
     }
-
     public boolean hasWon() {
         return hand.isEmpty();
+    }
+
+
+
+    // Add getter for hand
+    public List<Card> getHand() {
+        return Collections.unmodifiableList(hand); // Return unmodifiable view for safety
+    }
+    
+    // Remove showCards() method with console output or modify it to return a string
+    public String getCardsAsString() {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < hand.size(); i++) {
+            sb.append(i).append(": ").append(hand.get(i)).append("\n");
+        }
+        return sb.toString();
     }
 }

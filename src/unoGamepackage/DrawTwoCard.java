@@ -6,13 +6,6 @@ public class DrawTwoCard extends ActionCard {
         super(color);
     }
 
-    @Override
-    public void applyEffect(Game game, Player player) {
-        Player nextPlayer = game.getNextPlayer();
-        game.drawCard(nextPlayer); // Next player draws two cards
-        game.drawCard(nextPlayer);
-        System.out.println(player.getName() + " played Draw Two!");
-    }
 
     @Override
     public String toString() {
