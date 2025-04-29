@@ -1,103 +1,107 @@
 public class fisrtPage {
     
-           //faut d abord crée un frame puis metre dedans tous ca 
-            
-            // Utilisation d'un BorderLayout pour que le panel prenne toute la place
-            frame.setLayout(new BorderLayout());
+              // Création de la fenêtre principale
+            CustomFrame frame = new CustomFrame("uno",1550,1550);
             
             // Création de l'instance de notre panneau personnalisé
             CostumPanel customPanel = new CostumPanel("C:\\Users\\manel\\Downloads\\Nouveau dossier\\UNO_images_game-icon.png at master · aykhan019_UNO_files\\game-icon.png");
+            
+            // CORRECTION ICI: Utiliser setContentPanel au lieu de setContentArea
+            frame.setContentPanel(customPanel);
+            
+            // Définir la couleur de base
             customPanel.setBaseColor(new Color(148, 0, 211)); // Violet
-             //création d un panel pour la déco
-            CostumPanel panel = new CostumPanel("");
-            customPanel.add(panel);
-            customPanel.setBounds(0, 0, 1200, 100);
-           panel.setPreferredSize(new Dimension(300, 200)); 
-            // Configuration pour positionnement absolu tout en gardant les autres propriétés
+            
+            // Configuration pour positionnement absolu
             customPanel.setLayout(null);
             
             // Configuration de l'image
-            int imageWidth = 450;
-            int imageHeight = 450;
+            int imageWidth = 650;
+            int imageHeight = 650;
             customPanel.setImageSize(imageWidth, imageHeight);
-            customPanel.setImagePosition(50, 180); // Position originale de l'image
+            customPanel.setImagePosition(50, 180);
             
+            // Création des boutons et autres composants comme avant
             // Création des boutons
-            CustomButtonExample incrementPlayer = new CustomButtonExample();
-            CustomButtonExample incrementBot = new CustomButtonExample();
-            CustomButtonExample decrementPlayer = new CustomButtonExample();
-            CustomButtonExample decrementBot = new CustomButtonExample();
-            CustomButtonExample start = new CustomButtonExample();
+             CustomButtonExample incrementPlayer = new CustomButtonExample();
+             CustomButtonExample incrementBot = new CustomButtonExample();
+             CustomButtonExample decrementPlayer = new CustomButtonExample();
+             CustomButtonExample decrementBot = new CustomButtonExample();
+             CustomButtonExample start = new CustomButtonExample();
+             
+             // Charger une image
+             ImageIcon incmentIcon = new ImageIcon("C:\\Users\\manel\\OneDrive\\Bureau\\increment-btn.png");
+             ImageIcon decmentIcon = new ImageIcon("C:\\Users\\manel\\OneDrive\\Bureau\\decrement-btn.png");
+             // Configuration du boutton start 
+             start.setButtonSize(60,50);
+             start.setText("START");
+             start.setBackgroudColor(new Color(70, 130, 180));
+             start.setBorderThickness(5);
+             start.setForeground(Color.WHITE);
+             // Configuration 3eme bouton (gardez les propriétés originales)
+             incrementPlayer.setButtonImage(incmentIcon);
+             incrementPlayer.setIcon(decmentIcon);
+             incrementPlayer.setButtonSize(50, 50);
+             incrementPlayer.setCornerRadius(100);
+             
+             // ******Configuration du 1eme  bouton (gardez les propriétés originales)
+             incrementBot.setButtonImage(incmentIcon);
+             incrementBot.setIcon(decmentIcon);
+             incrementBot.setButtonSize(50, 50);
+             incrementBot.setCornerRadius(100);
+             
+              // Configuration du 2ere bouton (gardez les propriétés originales)
+             decrementPlayer.setButtonImage(decmentIcon);
+             decrementPlayer.setIcon(decmentIcon);
+             decrementPlayer.setButtonSize(50, 50);
+             decrementPlayer.setCornerRadius(100);
+             
+              // Configuration du 4eme bouton (gardez les propriétés originales)
+             decrementBot.setButtonImage(decmentIcon);
+             decrementBot.setIcon(decmentIcon);
+             decrementBot.setButtonSize(50, 50);
+             decrementBot.setCornerRadius(100);
+             
+             // Positionnement précis des boutons (ajustez ces valeurs selon vos besoins)
+             incrementPlayer.setBounds(1200,350, 50, 50); // x, y, largeur, hauteur
+             incrementBot.setBounds(1200, 700, 50, 50);    // x, y, largeur, hauteur
+             decrementPlayer.setBounds(800,350, 50, 50); // x, y, largeur, hauteur
+             decrementBot.setBounds(800,700, 50, 50);    // x, y, largeur, hauteur
+             start.setBounds(1300, 50, 200, 80);
+             // Ajout des boutons au panneau
+             customPanel.add(incrementPlayer);
+             customPanel.add(incrementBot);
+             customPanel.add(decrementPlayer);
+             customPanel.add(decrementBot);
+             customPanel.add(start);
+             // Ajout du panneau à la fenêtre
+             frame.add(customPanel, BorderLayout.CENTER);
+             
+          //ajoutée un label 
+         CustomLabel addP = new CustomLabel(" ADD PLAYERS");
+ 
+         addP.setSize(60, 30);
+         addP.setBounds(905, 250, 200, 50); 
+ 
+         customPanel.add(addP);
+         CustomLabel addB = new CustomLabel(" ADD BOTS");
+         addB.setSize(60, 30);
+         addB.setBounds(905, 600, 200, 50); 
+         customPanel.add(addB);
+         //ajouée des panle pour afficher le nbr des joueur
+         CustomLabel couterP= new CustomLabel("");
+         customPanel.add(couterP);
+         couterP.setBounds(905,350,200,50);
+         CustomLabel couterB= new CustomLabel("");
+         customPanel.add(couterB);
+         couterB.setBounds(905,700,200,50);
+             
+     
+         
+         
+     
             
-            // Charger une image
-            ImageIcon incmentIcon = new ImageIcon("C:\\Users\\manel\\OneDrive\\Bureau\\increment-btn.png");
-            ImageIcon decmentIcon = new ImageIcon("C:\\Users\\manel\\OneDrive\\Bureau\\decrement-btn.png");
-            // Configuration du boutton start 
-            start.setButtonSize(60,50);
-            start.setText("START");
-            start.setBackgroudColor(Color.YELLOW);
-            start.setBorderThickness(5);
-            start.setForeground(Color.WHITE);
-            // Configuration 3eme bouton (gardez les propriétés originales)
-            incrementPlayer.setButtonImage(incmentIcon);
-            incrementPlayer.setIcon(decmentIcon);
-            incrementPlayer.setButtonSize(50, 50);
-            incrementPlayer.setCornerRadius(100);
-            
-            // ******Configuration du 1eme  bouton (gardez les propriétés originales)
-            incrementBot.setButtonImage(incmentIcon);
-            incrementBot.setIcon(decmentIcon);
-            incrementBot.setButtonSize(50, 50);
-            incrementBot.setCornerRadius(100);
-            
-             // Configuration du 2ere bouton (gardez les propriétés originales)
-            decrementPlayer.setButtonImage(decmentIcon);
-            decrementPlayer.setIcon(decmentIcon);
-            decrementPlayer.setButtonSize(50, 50);
-            decrementPlayer.setCornerRadius(100);
-            
-             // Configuration du 4eme bouton (gardez les propriétés originales)
-            decrementBot.setButtonImage(decmentIcon);
-            decrementBot.setIcon(decmentIcon);
-            decrementBot.setButtonSize(50, 50);
-            decrementBot.setCornerRadius(100);
-            
-            // Positionnement précis des boutons (ajustez ces valeurs selon vos besoins)
-            incrementPlayer.setBounds(1200,350, 50, 50); // x, y, largeur, hauteur
-            incrementBot.setBounds(1200, 700, 50, 50);    // x, y, largeur, hauteur
-            decrementPlayer.setBounds(800,350, 50, 50); // x, y, largeur, hauteur
-            decrementBot.setBounds(800,700, 50, 50);    // x, y, largeur, hauteur
-            start.setBounds(1300, 50, 200, 80);
-            // Ajout des boutons au panneau
-            customPanel.add(incrementPlayer);
-            customPanel.add(incrementBot);
-            customPanel.add(decrementPlayer);
-            customPanel.add(decrementBot);
-            customPanel.add(start);
-            // Ajout du panneau à la fenêtre
-            frame.add(customPanel, BorderLayout.CENTER);
-            
-         //ajoutée un label 
-        CustomLabel addP = new CustomLabel(" ADD PLAYERS");
-
-        addP.setSize(60, 30);
-        addP.setBounds(905, 250, 200, 50); 
-
-        customPanel.add(addP);
-        CustomLabel addB = new CustomLabel(" ADD BOTS");
-        addB.setSize(60, 30);
-        addB.setBounds(905, 600, 200, 50); 
-        customPanel.add(addB);
-        //ajouée des panle pour afficher le nbr des joueur
-        CustomLabel couterP= new CustomLabel("");
-        customPanel.add(couterP);
-        couterP.setBounds(905,350,200,50);
-        CustomLabel couterB= new CustomLabel("");
-        customPanel.add(couterB);
-        couterB.setBounds(905,700,200,50);
             // Affichage de la fenêtre
-            
-        });
         
         
     }
