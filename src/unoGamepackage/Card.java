@@ -1,61 +1,43 @@
 package unoGamepackage;
-import javax.swing.*;
-import java.io.File;
+import java.awt.Graphics;
 
-public class Card {
-    private String color;
-    private String value;
-    private String imageName;
-    private ImageIcon image;
+public abstract class Card {
+    protected final Color color;
+    protected Color effectiveColor; // For wild cards after color selection
 
-    // Nouveau chemin avec le bon dossier + barre finale
-    private static final String IMAGE_PATH = "C:\\Users\\manel\\OneDrive\\Bureau\\cartesuno\\cards\\";
-
-    public Card(String color, String value) {
+    public Card(Color color) {
         this.color = color;
-        this.value = value;
-        this.imageName = generateImageName();
-        this.image = loadImage();
-    }
-     // Taille des cartes redimensionnées (ex: 100x150 pixels)
-    private static final int CARD_WIDTH = 50;
-    private static final int CARD_HEIGHT = 50;
-
-    // Génère le bon nom d’image avec .jpg
-    private String generateImageName() {
-        if (color.equalsIgnoreCase("Wild")) {
-            return value + ".jpg"; // ex : "Wild.jpg"
-        } else {
-            return color + "_" + value + ".jpg"; // ex : "Blue_5.jpg"
-        }
+        this.effectiveColor = color;
     }
 
-    // Charge l'image depuis le chemin complet
-    private ImageIcon loadImage() {
-        String fullPath = IMAGE_PATH + imageName;
-        File imageFile = new File(fullPath);
-        if (imageFile.exists()) {
-            return new ImageIcon(fullPath);
-        } else {
-            System.err.println("Image non trouvée : " + fullPath);
-            return null;
-        }
+    public Color getColor() {
+        return effectiveColor;
     }
 
-    public String getColor() {
+    public Color getOriginalColor() {
         return color;
     }
 
-    public String getValue() {
-        return value;
+    public void setEffectiveColor(Color color) {
+        this.effectiveColor = color;
     }
 
-    public ImageIcon getImage() {
-        return image;
+    public abstract boolean canBePlayedOn(Card topCard);
+
+    // Apply card effects when played
+    public void applyEffect(Game game, Player player) {
+        // Default implementation - no effect
+        // Should be overridden by specific cards like Skip, Reverse, etc.
     }
 
-    @Override
-    public String toString() {
-        return color + " " + value;
+    public abstract String toString();
+
+    public String getImagePath() {
+        return "images/" + color + "_" + this.getClass().getSimpleName() + ".png";
     }
-}
+
+    // For custom drawing
+    public void draw(Graphics g, int x, int y, int width, int height) {
+        // Drawing code here
+    }
+}  
