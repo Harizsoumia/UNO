@@ -1,157 +1,90 @@
-package view;
-
-import controller.GameController;
-import unoGamepackage.Card;
-import unoGamepackage.Color;
-import unoGamepackage.Player;
-
+import java.awt.Color;
 import java.util.List;
 
-/**
- * Interface defining the view component for the UNO game's MVC architecture.
- * Handles all UI elements and user interactions.
- */
 public interface GameView {
-    
+    // Constants
+    int FRAME_WIDTH = 900;
+    int FRAME_HEIGHT = 700;
+    int CARD_WIDTH = 70;
+    int CARD_HEIGHT = 100;
+    int FAN_ANGLE = 40;
+
     /**
-     * Updates the displayed player hand with new cards
-     * 
-     * @param hand List of cards in the player's hand
+     * Updates the discard pile with the given card
+     * @param card The card to display on the discard pile
      */
-    void updatePlayerHand(List<Card> hand);
-    
+    void updateDiscardPile(Card card);
+
     /**
-     * Updates the display of the top card on the discard pile
-     * 
-     * @param card The current top card
+     * Updates the background color based on the current card
+     * @param cardLabel The JLabel representing the card
      */
-    void updateTopCard(Card card);
-    
+    void updateBackgroundColorFromCard(JLabel cardLabel);
+
     /**
-     * Displays a message in the UI
-     * 
-     * @param message The message to display
+     * Converts a card color string to a Color object
+     * @param cardColor The color string from the card
+     * @return The corresponding Color object
      */
-    void displayMessage(String message);
-    
+    Color getColorFromCardColor(String cardColor);
+
     /**
-     * Enables the play button
+     * Creates a card label for display
+     * @param card The card to display (null for card back)
+     * @param displayType Either "face" or "dos" (back)
+     * @return A JLabel representing the card
      */
-    void enablePlayButton();
-    
+    JLabel createCardLabel(Card card, String displayType);
+
     /**
-     * Disables the play button
+     * Creates an icon for a card
+     * @param value The card value
+     * @param color The card color
+     * @param type Either "face" or "dos" (back)
+     * @return An Icon representing the card
      */
-    void disablePlayButton();
-    
+    Icon createCardIcon(String value, Color color, String type);
+
     /**
-     * Enables the pass button
+     * Sets up the layout of the game view
      */
-    void enablePassButton();
-    
+    void setupLayout();
+
     /**
-     * Disables the pass button
+     * Sets up the center panel with draw and discard piles
+     * @return The configured JPanel
      */
-    void disablePassButton();
-    
+    JPanel setupCenterPanel();
+
     /**
-     * Updates the game status display
-     * 
-     * @param status The current game status text
+     * Sets up a hand panel for a player
+     * @param playerIndex The index of the player
+     * @param numCards The number of cards in the hand
+     * @return The configured JPanel
      */
-    void updateGameStatus(String status);
-    
+    JPanel setupHandPanel(int playerIndex, int numCards);
+
     /**
-     * Sets the list of players in the game
-     * 
-     * @param players List of player names
+     * Positions cards in a fan shape for display
+     * @param pane The JLayeredPane to add cards to
+     * @param cards The list of cards to display
+     * @param playerIndex The index of the player
      */
-    void setPlayers(List<String> players);
-    
+    void positionCardsInFan(JLayeredPane pane, List<Card> cards, int playerIndex);
+
     /**
-     * Handles a card click event
-     * 
-     * @param card The card that was clicked
+     * Sets the background color of the game panel
+     * @param color The color to set
      */
-    void onCardClicked(Card card);
-    
-    /**
-     * Handles when the pass turn button is clicked
-     */
-    void onPassTurnClicked();
-    
-    /**
-     * Sets the controller for this view
-     * 
-     * @param controller The game controller
-     */
-    void setController(GameController controller);
-    
-    /**
-     * Updates the complete game state display
-     * 
-     * @param players List of all players
-     * @param currentPlayerIndex Index of the current player
-     * @param topCard The current top card
-     * @param direction The current direction of play (positive = clockwise)
-     * @param winner The winner of the game, or null if game is ongoing
-     */
-    void updateGameState(List<Player> players, int currentPlayerIndex, Card topCard, int direction, Player winner);
-    
-    /**
-     * Shows that a player has played a card
-     * 
-     * @param player The player who played
-     * @param card The card that was played
-     */
-    void showCardPlayed(Player player, Card card);
-    
-    /**
-     * Shows that a player attempted an invalid move
-     * 
-     * @param player The player who attempted the move
-     * @param card The card that could not be played
-     */
-    void showInvalidMove(Player player, Card card);
-    
-    /**
-     * Shows that a player has drawn a card
-     * 
-     * @param player The player who drew a card
-     * @param card The card that was drawn
-     */
-    void showCardDrawn(Player player, Card card);
-    
-    /**
-     * Shows that a player's turn was skipped
-     * 
-     * @param player The player who was skipped
-     */
-    void showPlayerSkipped(Player player);
-    
-    /**
-     * Shows that the direction of play has changed
-     * 
-     * @param isReversed True if direction is counter-clockwise, false if clockwise
-     */
-    void showDirectionChanged(boolean isReversed);
-    
-    /**
-     * Shows the final result of the game
-     * 
-     * @param winner The player who won the game
-     */
-    void showGameResult(Player winner);
-    
-    /**
-     * Prompts the user to select a color (for wild cards)
-     */
-    void promptColorSelection();
-    
-    /**
-     * Shows that the wild card color has been changed
-     * 
-     * @param color The new color from unoGamepackage.Color enum
-     */
-    void showColorChanged(unoGamepackage.Color color);
+    void setBackgroundColor(Color color);
+}
+
+// Supporting interfaces/classes that would need to be defined
+interface Card {
+    String getValue();
+    String getColor();
+}
+
+interface Deck {
+    Card drawCard();
 }
