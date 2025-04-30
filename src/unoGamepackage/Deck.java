@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class Deck {
-    private final List<Card> cards;
+    private List<Card> cards;
 
     public Deck() {
         cards = new ArrayList<>();
@@ -14,59 +14,51 @@ public class Deck {
     }
 
     private void initializeDeck() {
-        for (Color color : Color.values()) {
-            if (color == Color.WILD) continue;
+    	String[] colors = {"Red", "Yellow", "Green", "Blue"};
+    	String[] numbers = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
+    	String[] actions = {"skip", "reverse", "draw 2"};
 
-            // One 0 card per color
-            cards.add(new NumberCard(color, 0));
 
-            // Two of each 1–9
+        // Cartes numérotées
+        for (String color : colors) {
+            // Une carte 0 par couleur
+            cards.add(new Card (color, "0"));
+            // Deux cartes de chaque nombre de 1 à 9 par couleur
             for (int i = 1; i <= 9; i++) {
-                cards.add(new NumberCard(color, i));
-                cards.add(new NumberCard(color, i));
+                cards.add(new Card(color, String.valueOf(i)));
+                cards.add(new Card(color, String.valueOf(i)));
             }
-
-            // Two Skip, Reverse, Draw Two cards per color
-            cards.add(new SkipCard(color));
-            cards.add(new SkipCard(color));
-
-            cards.add(new ReverseCard(color));
-            cards.add(new ReverseCard(color));
-
-            cards.add(new DrawTwoCard(color));
-            cards.add(new DrawTwoCard(color));
         }
 
-        // Wild cards (no color)
+        // Cartes spéciales
+        for (String color : colors) {
+            for (String action : actions) {
+                // Deux cartes de chaque action par couleur
+                cards.add(new Card(color, action));
+                cards.add(new Card(color, action));
+            }
+        }
+
+        // Cartes jokers
         for (int i = 0; i < 4; i++) {
-            cards.add(new WildCard());
-            cards.add(new WildDrawFourCard());
+            cards.add(new Card("Wild", "Wild"));
+            cards.add(new Card("Wild", "Wild_draw_4"));
         }
     }
 
     public void shuffle() {
         Collections.shuffle(cards);
     }
-    
-    public void addCard(Card card) {
-        addToBottom(card);
-    }
-
-    public boolean isEmpty() {
-        return cards.isEmpty();
-    }
 
     public Card drawCard() {
-        if (isEmpty()) throw new IllegalStateException("The deck is empty.");
-        return cards.remove(0);
+        if (!cards.isEmpty()) {
+            return cards.remove(0);
+        } else {
+            return null; // Le deck est vide
+        }
     }
 
-    public void addToBottom(Card card) {
-        cards.add(card);
-    }
-
-    public int size() {
-        return cards.size();
+    public List<Card> getCards() {
+        return cards;
     }
 }
-

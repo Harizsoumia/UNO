@@ -1,192 +1,208 @@
 package unoGamepackage;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
-
 import java.util.ArrayList;
+import java.util.List;
+import controller.GameEventListener;
+
+/**
+ * Represents an UNO game
+ * Manages the core game logic, player turns, and game state
+ */
 public class Game {
     private final List<Player> players;
     private final Deck deck;
-    private int currentPlayerIndex;
     private Card topCard;
-    private int direction = 1; // 1 for clockwise, -1 for counter-clockwise
-    private List<GameEventListener> eventListeners = new ArrayList<>();
-    
-    public void addGameEventListener(GameEventListener listener) {
-        eventListeners.add(listener);
-    }
-    
-    public void removeGameEventListener(GameEventListener listener) {
-        eventListeners.remove(listener);
-    }
-    
-    private void notifyCardPlayed(Player player, Card card) {
-        for (GameEventListener listener : eventListeners) {
-            listener.onCardPlayed(player, card);
-        }
-    }
-    
+    private int currentPlayerIndex;
+    private int direction;  // 1 for clockwise, -1 for counter-clockwise
+    private boolean gameOver;
+    private Player winner;
+
+    private final List<GameEventListener> eventListeners;
+
+    /**
+     * Constructor that initializes the game with a list of players
+     * @param players The list of players
+     */
     public Game(List<Player> players) {
-        this.players = players;
+        this.players = new ArrayList<>(players);
         this.deck = new Deck();
         this.currentPlayerIndex = 0;
+        this.direction = 1;  // Start clockwise
+        this.gameOver = false;
+        this.winner = null;
+        this.eventListeners = new ArrayList<>();
+
+        // Deal initial cards
         dealInitialCards();
-        initializeTopCard();
+
+        // Set the top card
+        topCard = deck.drawCard();
+
+        // If the top card is a wild card, set a random color
+        if (topCard instanceof WildCard) {
+            Color[] colors = {Color.RED, Color.BLUE, Color.GREEN, Color.YELLOW}; // Exclude WILD from random selection
+            int randomIndex = (int) (Math.random() * colors.length);
+            ((WildCard) topCard).setEffectiveColor(colors[randomIndex]);
+        }
+
+        // If the top card is an action card, apply its effect
+        if (topCard instanceof ActionCard) {
+            topCard.applyEffect(this, null);
+        }
     }
 
     private void dealInitialCards() {
         for (Player player : players) {
             for (int i = 0; i < 7; i++) {
-                player.addCard(deck.drawCard());
+                player.drawCard(deck.drawCard());
             }
         }
     }
 
-    public void setTopCard(Card card) {
-        this.topCard = card;
+    public void addGameEventListener(GameEventListener listener) {
+        eventListeners.add(listener);
     }
 
-    private void initializeTopCard() {
-        while (true) {
-            Card card = deck.drawCard();
-            if (!(card instanceof ActionCard)) {
-                this.topCard = card;
-                break;
-            } else {
-                deck.addCard(card); // Shuffle back if not valid
-                deck.shuffle();
-            }
-        }
-    }
-
-    public Card getTopCard() {
-        return topCard;
+    public void removeGameEventListener(GameEventListener listener) {
+        eventListeners.remove(listener);
     }
 
     public Player getCurrentPlayer() {
         return players.get(currentPlayerIndex);
     }
 
-    public void playTurn(Player player, Card card) {
-        if (card.canBePlayedOn(topCard)) {
-            player.removeCard(card);
-            topCard = card;
-            notifyCardPlayed(player, card); 
-            card.applyEffect(this, player);
-        } else {
-        	notifyInvalidMove(player, card);        }
+    public Player getNextPlayer() {
+        int nextIndex = getNextPlayerIndex();
+        return players.get(nextIndex);
     }
 
-   
-    
-    public void drawCard(Player player) {
-        Card drawn = deck.drawCard();
-        player.drawCard(drawn);
-        notifyCardDrawn(player, drawn);
+    private int getNextPlayerIndex() {
+        int nextIndex = (currentPlayerIndex + direction) % players.size();
+        if (nextIndex < 0) {
+            nextIndex += players.size();
+        }
+        return nextIndex;
     }
+
     public void nextPlayer() {
-        currentPlayerIndex = (currentPlayerIndex + direction + players.size()) % players.size();
+        currentPlayerIndex = getNextPlayerIndex();
+    }
+
+    public void skipNextPlayer() {
+        Player skippedPlayer = getNextPlayer();
+        nextPlayer();
+        for (GameEventListener listener : eventListeners) {
+            listener.onPlayerSkipped(skippedPlayer);
+        }
     }
 
     public void reverseDirection() {
         direction *= -1;
-        notifyDirectionChanged(direction == -1); 
-    }
-
-    public void skipNextPlayer() {
-        Player skipped = getNextPlayer();
-        nextPlayer();
-        notifyPlayerSkipped(skipped);  // Create and use this method
-    }
-
-    public Player getNextPlayer() {
-        int nextIndex = (currentPlayerIndex + direction + players.size()) % players.size();
-        return players.get(nextIndex);
-    }
-    // notifications
-    private void notifyInvalidMove(Player player, Card card) {
         for (GameEventListener listener : eventListeners) {
-            listener.onInvalidMove(player, card);
+            listener.onDirectionChanged(direction == -1);
         }
     }
 
-    private void notifyCardDrawn(Player player, Card card) {
+    public boolean playTurn(Player player, Card card) {
+        if (player != getCurrentPlayer()) {
+            return false;
+        }
+
+        if (!card.canBePlayedOn(topCard)) {
+            for (GameEventListener listener : eventListeners) {
+                listener.onInvalidMove(player, card);
+            }
+            return false;
+        }
+
+        player.removeCard(card);
+        topCard = card;
+        
+        for (GameEventListener listener : eventListeners) {
+            listener.onCardPlayed(player, card);
+        }
+
+        // Apply card effects after notifying listeners about the card being played
+        card.applyEffect(this, player);
+
+        if (player.hasWon()) {
+            gameOver = true;
+            winner = player;
+            for (GameEventListener listener : eventListeners) {
+                listener.onGameWon(player);
+            }
+        }
+
+        if (card instanceof WildCard) {
+            for (GameEventListener listener : eventListeners) {
+                listener.onColorChangedRequest(player);
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Sets the color for a wild card using custom UNO Color enum
+     * @param color The UNO color to set
+     */
+    public void setWildCardColor(Color color) {
+        if (topCard instanceof WildCard) {
+            ((WildCard) topCard).setEffectiveColor(color);
+        }
+    }
+
+    public Card drawCard(Player player) {
+        Card card = deck.drawCard();
+        player.drawCard(card);
+
         for (GameEventListener listener : eventListeners) {
             listener.onCardDrawn(player, card);
         }
+
+        return card;
     }
 
-    private void notifyPlayerSkipped(Player player) {
-        for (GameEventListener listener : eventListeners) {
-            listener.onPlayerSkipped(player);
-        }
+    public boolean checkUno() {
+        Player currentPlayer = getCurrentPlayer();
+        return currentPlayer.getHand().size() == 1;
     }
 
-    private void notifyDirectionChanged(boolean isReversed) {
-        for (GameEventListener listener : eventListeners) {
-            listener.onDirectionChanged(isReversed);
-        }
+    public void passTurn() {
+        // Just move to the next player
+        nextPlayer();
     }
-    
-    //Add game state methods for UI:
-    
-    public int getDirection() {
-        return direction;
+
+    public void playCard(Card card) {
+        Player currentPlayer = getCurrentPlayer();
+        playTurn(currentPlayer, card);
+    }
+
+    public boolean isCardPlayable(Card card) {
+        return card.canBePlayedOn(topCard);
+    }
+
+    public Card getTopCard() {
+        return topCard;
     }
 
     public List<Player> getPlayers() {
-        return Collections.unmodifiableList(players);
+        return new ArrayList<>(players);
     }
 
     public int getCurrentPlayerIndex() {
         return currentPlayerIndex;
     }
 
+    public int getDirection() {
+        return direction;
+    }
+
     public boolean isGameOver() {
-        for (Player player : players) {
-            if (player.getHand().isEmpty()) {
-                return true;
-            }
-        }
-        return false;
+        return gameOver;
     }
 
     public Player getWinner() {
-        for (Player player : players) {
-            if (player.getHand().isEmpty()) {
-                return player;
-            }
-        }
-        return null;
-    }
-    
-    public void handleCardEffect(Card card, Player player) {
-        if (card instanceof ReverseCard) {
-            // Reverse play direction
-            reverseDirection();
-            notifyDirectionChanged(direction == -1);
-        } else if (card instanceof SkipCard) {
-            // Skip the next player
-            skipNextPlayer();
-        } else if (card instanceof WildCard) {
-            // Notify UI to request a color selection
-            notifyColorChangeRequest(player);
-        } else if (card instanceof WildDrawFourCard) {
-            // Next player must draw four cards
-            Player nextPlayer = getNextPlayer();
-            for (int i = 0; i < 4; i++) {
-                drawCard(nextPlayer);
-            }
-            notifyColorChangeRequest(player);
-        }
-
-        // Notify that a card was played
-        notifyCardPlayed(player, card);
-
-        // Check if the game has ended
-        if (isGameOver()) {
-            notifyGameWon(getWinner());
-        }
+        return winner;
     }
 }

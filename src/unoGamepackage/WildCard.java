@@ -1,21 +1,24 @@
 package unoGamepackage;
 
-
-public class WildCard extends ActionCard {
-
+/**
+ * Represents a Wild card in UNO
+ */
+public class WildCard extends Card {
     public WildCard() {
-        super(Color.WILD);
+        super(null); // No color initially
     }
-
+    
     @Override
     public boolean canBePlayedOn(Card topCard) {
-        return true;
+        return true; // Can be played on any card
     }
-
-   
+    
     @Override
     public String toString() {
-        return "WILD";
+        return effectiveColor == null ? "Wild" : "Wild (" + effectiveColor + ")";
     }
-}
+    public void setEffectiveColor(Color color) {
+        this.effectiveColor = color;
+    }
 
+}

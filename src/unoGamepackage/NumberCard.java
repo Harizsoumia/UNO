@@ -1,21 +1,30 @@
 package unoGamepackage;
 
+/**
+ * Represents a number card in UNO
+ */
 public class NumberCard extends Card {
-    private final int value;
-
-    public NumberCard(Color color, int value) {
+    private final int number;
+    
+    public NumberCard(Color color, int number) {
         super(color);
-        this.value = value;
+        this.number = number;
     }
-
+    
+    public int getNumber() {
+        return number;
+    }
+    
     @Override
     public boolean canBePlayedOn(Card topCard) {
-        return this.color == topCard.getColor() || topCard instanceof NumberCard && ((NumberCard) topCard).value == this.value;
+        if (topCard instanceof NumberCard) {
+            return topCard.getColor() == this.color || ((NumberCard) topCard).getNumber() == this.number;
+        }
+        return topCard.getColor() == this.color;
     }
-
-
+    
     @Override
     public String toString() {
-        return color + " " + value;
+        return color.toString() + " " + number;
     }
 }
