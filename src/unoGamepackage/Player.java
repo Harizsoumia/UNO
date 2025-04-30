@@ -4,18 +4,23 @@ import java.util.List;
 import java.util.Optional;
 
 public class Player {
+    public enum PlayerType { HUMAN, BOT }
     private final String name;
+    private PlayerType type;
     private final List<Card> hand;
 
-    public Player(String name) {
+    public Player(String name, PlayerType type) {
         this.name = name;
+        this.type = type;
         this.hand = new ArrayList<>();
     }
 
     public String getName() {
         return name;
     }
-
+public PlayerType getType() {
+        return type;
+    }
 
     public void drawCard(Player player) {
         if (!deck.isEmpty()) {
