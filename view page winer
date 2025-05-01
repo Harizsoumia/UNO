@@ -12,6 +12,7 @@ import view.CustomLabel;
 import view.CustomTextField;
 import view.CustomRestartButton;
 
+import viewunogame.AccueilView;
 
 
 
@@ -119,6 +120,17 @@ public class WinnerView extends JFrame {
     public CustomRestartButton getRestartButton() {
         return restartButton;
     }
+restartButton.addActionListener(new ActionListener() {
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        
+        new AccueilView();
+        
+        // Close the current WinnerView window
+        dispose();
+    }
+});
+
     
     /**
      * Méthode principale pour tester la page du gagnant
