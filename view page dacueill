@@ -222,6 +222,27 @@ public class AccueilView extends JFrame {
     public CustomButton getStartGameButton() {
         return startGameButton;
     }
+public ArrayList<Player> collectPlayers() {
+    ArrayList<Player> players = new ArrayList<>();
+    
+    int playerCount = Integer.parseInt((String) playerCountComboBox.getSelectedItem());
+    
+    for (int i = 0; i < playerCount; i++) {
+        String name = playerNameFields[i].getText().trim();
+        String typeString = (String) playerTypeComboBoxes[i].getSelectedItem();
+        Player.PlayerType type = typeString.equals("Humain") ? Player.PlayerType.HUMAN : Player.PlayerType.BOT;
+        
+        if (name.isEmpty()) {
+            name = "Player " + (i + 1); // Default name if none entered
+        }
+        
+        Player player = new Player(name, type);
+        players.add(player);
+    }
+    
+    return players;
+}
+
     
     /**
      * Méthode principale pour tester la page d'accueil
