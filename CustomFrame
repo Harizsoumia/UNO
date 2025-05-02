@@ -1,0 +1,166 @@
+package view;
+
+import javax.swing.*;
+import java.awt.*;
+
+/**
+ * Classe CustomFrame qui étend JFrame avec des personnalisations spécifiques
+ * pour l'application UNO
+ */
+public class CustomFrame extends JFrame {
+    
+    /**
+     * Constructeur par défaut
+     */
+    public CustomFrame() {
+        // Personnalisation de base
+        setDefaultLookAndFeel();
+        setDefaultSize();
+        setDefaultColors();
+    }
+    
+    /**
+     * Constructeur avec titre
+     * @param title Titre de la fenêtre
+     */
+    public CustomFrame(String title) {
+        super(title);
+        setDefaultLookAndFeel();
+        setDefaultSize();
+        setDefaultColors();
+    }
+    
+    /**
+     * Définit l'apparence par défaut
+     */
+    private void setDefaultLookAndFeel() {
+        try {
+            // Utilise le look and feel du système
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            
+            // Personnalisation des composants UI
+            UIManager.put("Button.background", new Color(230, 230, 250));
+            UIManager.put("Panel.background", new Color(240, 248, 255));
+            UIManager.put("Label.foreground", new Color(25, 25, 112));
+            UIManager.put("ComboBox.background", new Color(230, 230, 250));
+        } catch (Exception e) {
+            System.err.println("Erreur lors de la définition du look and feel: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Définit la taille par défaut
+     */
+    private void setDefaultSize() {
+        setSize(800, 600);
+        setLocationRelativeTo(null); // Centre la fenêtre
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    }
+    
+    /**
+     * Définit les couleurs par défaut
+     */
+    private void setDefaultColors() {
+        // Couleur de fond pour le ContentPane
+        getContentPane().setBackground(new Color(240, 248, 255));
+    }
+    
+    /**
+     * Applique un thème personnalisé
+     * @param theme Nom du thème à appliquer
+     */
+    public void applyTheme(String theme) {
+        switch (theme.toLowerCase()) {
+            case "dark":
+                applyDarkTheme();
+                break;
+            case "light":
+                applyLightTheme();
+                break;
+            case "uno":
+                applyUnoTheme();
+                break;
+            default:
+                // Thème par défaut
+                setDefaultColors();
+                break;
+        }
+        
+        // Rafraîchir l'interface
+        SwingUtilities.updateComponentTreeUI(this);
+    }
+    
+    /**
+     * Applique un thème sombre
+     */
+    private void applyDarkTheme() {
+        getContentPane().setBackground(new Color(50, 50, 50));
+        
+        UIManager.put("Panel.background", new Color(60, 60, 60));
+        UIManager.put("Button.background", new Color(80, 80, 80));
+        UIManager.put("Button.foreground", Color.WHITE);
+        UIManager.put("Label.foreground", new Color(220, 220, 220));
+        UIManager.put("ComboBox.background", new Color(80, 80, 80));
+        UIManager.put("ComboBox.foreground", Color.WHITE);
+        UIManager.put("TextField.background", new Color(70, 70, 70));
+        UIManager.put("TextField.foreground", Color.WHITE);
+    }
+    
+    /**
+     * Applique un thème clair
+     */
+    private void applyLightTheme() {
+        getContentPane().setBackground(new Color(245, 245, 245));
+        
+        UIManager.put("Panel.background", new Color(250, 250, 250));
+        UIManager.put("Button.background", new Color(240, 240, 240));
+        UIManager.put("Button.foreground", Color.BLACK);
+        UIManager.put("Label.foreground", new Color(50, 50, 50));
+        UIManager.put("ComboBox.background", new Color(240, 240, 240));
+        UIManager.put("ComboBox.foreground", Color.BLACK);
+        UIManager.put("TextField.background", Color.WHITE);
+        UIManager.put("TextField.foreground", Color.BLACK);
+    }
+    
+    /**
+     * Applique un thème inspiré du jeu UNO
+     */
+    private void applyUnoTheme() {
+        getContentPane().setBackground(new Color(220, 220, 220));
+        
+        // Couleurs inspirées des cartes UNO (rouge, jaune, vert, bleu)
+        UIManager.put("Panel.background", new Color(220, 220, 220));
+        UIManager.put("Button.background", new Color(220, 53, 53)); // Rouge UNO
+        UIManager.put("Button.foreground", Color.WHITE);
+        UIManager.put("Label.foreground", new Color(0, 0, 0));
+        UIManager.put("ComboBox.background", new Color(0, 111, 185)); // Bleu UNO
+        UIManager.put("ComboBox.foreground", Color.WHITE);
+        UIManager.put("TextField.background", Color.WHITE);
+        UIManager.put("TextField.foreground", Color.BLACK);
+    }
+    
+    /**
+     * Définit une image de fond pour la fenêtre
+     * @param imagePath Chemin de l'image
+     */
+    public void setBackgroundImage(String imagePath) {
+        try {
+            final ImageIcon backgroundImage = new ImageIcon(imagePath);
+            
+            // Créer un JPanel personnalisé avec une image de fond
+            JPanel backgroundPanel = new JPanel() {
+                @Override
+                protected void paintComponent(Graphics g) {
+                    super.paintComponent(g);
+                    g.drawImage(backgroundImage.getImage(), 0, 0, getWidth(), getHeight(), this);
+                }
+            };
+            
+            backgroundPanel.setLayout(new BorderLayout());
+            setContentPane(backgroundPanel);
+            
+        } catch (Exception e) {
+            System.err.println("Erreur lors du chargement de l'image de fond: " + e.getMessage());
+        }
+    }
+}
