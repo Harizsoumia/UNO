@@ -1,28 +1,22 @@
-
 package viewunogame;
-
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
-
 import view.CustomPanel;
 import view.CustomButton;
 import view.CustomLabel;
 import view.CustomComboBox;
-
+import view.CustomFrame;
 import view.CustomTextField;
 import view.CustomImageLabel;
 
-
-
-
-
-
-
-public class AccueilView extends JFrame {
+/**
+ * Vue d'accueil du jeu UNO
+ */
+public class AccueilView extends CustomFrame {
     
     // Composants de l'interface
     private CustomPanel mainPanel;
@@ -38,12 +32,16 @@ public class AccueilView extends JFrame {
     private CustomPanel[] playerPanels = new CustomPanel[4];
     private CustomButton startGameButton;
     
+    /**
+     * Constructeur
+     */
     public AccueilView() {
         // Configuration de la fenêtre
-        setTitle("UNO Game");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        super("UNO Game");
+        applyTheme("uno"); // Appliquer le thème UNO
         setSize(800, 600);
         setLocationRelativeTo(null);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         
         // Initialisation des composants
         initComponents();
@@ -172,6 +170,12 @@ public class AccueilView extends JFrame {
         // Panel du bas pour le bouton de démarrage
         CustomPanel bottomPanel = new CustomPanel(new FlowLayout(FlowLayout.CENTER));
         startGameButton = new CustomButton("Start Game");
+        startGameButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                startGame();
+            }
+        });
         bottomPanel.add(startGameButton);
         
         // Ajout du panel du bas au panel principal
@@ -217,6 +221,40 @@ public class AccueilView extends JFrame {
     }
     
     /**
+     * Démarre le jeu avec les paramètres sélectionnés
+     */
+    private void startGame() {
+        int playerCount = Integer.parseInt((String) playerCountComboBox.getSelectedItem());
+        String[] playerNames = new String[playerCount];
+        boolean[] isHuman = new boolean[playerCount];
+        
+        // Récupération des noms et types de joueurs
+        for (int i = 0; i < playerCount; i++) {
+            playerNames[i] = playerNameFields[i].getText().trim();
+            
+            // Si le nom est vide, on met un nom par défaut
+            if (playerNames[i].isEmpty()) {
+                playerNames[i] = "Joueur " + (i + 1);
+            }
+            
+            isHuman[i] = playerTypeComboBoxes[i].getSelectedItem().equals("Humain");
+        }
+        
+        // Fermer cette fenêtre
+        dispose();
+        
+        // Ici, vous pourriez lancer la fenêtre principale du jeu
+        // Par exemple:
+        // new GameView(playerNames, isHuman);
+        
+        // Pour l'instant, afficher un message pour confirmer
+        JOptionPane.showMessageDialog(null, 
+            "Le jeu va commencer avec " + playerCount + " joueurs !", 
+            "UNO Game", 
+            JOptionPane.INFORMATION_MESSAGE);
+    }
+    
+    /**
      * Retourne le bouton de démarrage
      */
     public CustomButton getStartGameButton() {
@@ -229,11 +267,10 @@ public class AccueilView extends JFrame {
     public static void main(String[] args) {
         // Utiliser SwingUtilities pour s'assurer que l'interface est créée dans l'EDT
         SwingUtilities.invokeLater(new Runnable() {
-            
             @Override
             public void run() {
                 new AccueilView();
             }
         });
     }
-} 
+}
