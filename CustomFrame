@@ -131,11 +131,11 @@ public class CustomFrame extends JFrame {
         // Couleurs inspirées des cartes UNO (rouge, jaune, vert, bleu)
         UIManager.put("Panel.background", new Color(220, 220, 220));
         UIManager.put("Button.background", new Color(220, 53, 53)); // Rouge UNO
-        UIManager.put("Button.foreground", Color.WHITE);
+        UIManager.put("Button.foreground", Color.BLACK);
         UIManager.put("Label.foreground", new Color(0, 0, 0));
         UIManager.put("ComboBox.background", new Color(0, 111, 185)); // Bleu UNO
-        UIManager.put("ComboBox.foreground", Color.WHITE);
-        UIManager.put("TextField.background", Color.WHITE);
+        UIManager.put("ComboBox.foreground", Color.BLACK);
+        UIManager.put("TextField.background", Color.BLACK);
         UIManager.put("TextField.foreground", Color.BLACK);
     }
     
