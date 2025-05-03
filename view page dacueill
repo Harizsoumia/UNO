@@ -12,6 +12,8 @@ import view.CustomComboBox;
 import view.CustomFrame;
 import view.CustomTextField;
 import view.CustomImageLabel;
+import model.UnoGame;
+import model.Player;
 
 /**
  * Vue d'accueil du jeu UNO
@@ -225,33 +227,39 @@ public class AccueilView extends CustomFrame {
      */
     private void startGame() {
         int playerCount = Integer.parseInt((String) playerCountComboBox.getSelectedItem());
-        String[] playerNames = new String[playerCount];
-        boolean[] isHuman = new boolean[playerCount];
-        
-        // Récupération des noms et types de joueurs
+        ArrayList<Player> players = new ArrayList<>();
+    
+        // Collect player data from the UI
         for (int i = 0; i < playerCount; i++) {
-            playerNames[i] = playerNameFields[i].getText().trim();
+            String name = playerNameFields[i].getText().trim();
             
-            // Si le nom est vide, on met un nom par défaut
-            if (playerNames[i].isEmpty()) {
-                playerNames[i] = "Joueur " + (i + 1);
+            // Use default name if empty
+            if (name.isEmpty()) {
+                name = "Joueur " + (i + 1);
             }
             
-            isHuman[i] = playerTypeComboBoxes[i].getSelectedItem().equals("Humain");
+            String typeString = (String) playerTypeComboBoxes[i].getSelectedItem();
+            Player.PlayerType type = typeString.equals("Humain") ? 
+                                     Player.PlayerType.HUMAN : 
+                                     Player.PlayerType.BOT;
+            
+            players.add(new Player(name, type));
         }
+    
+        // Initialize the game with collected players
+        UnoGame unoGame = new UnoGame();
+        unoGame.initializeGame(players);
         
-        // Fermer cette fenêtre
+        // Close the current view
         dispose();
-        
-        // Ici, vous pourriez lancer la fenêtre principale du jeu
-        // Par exemple:
-        // new GameView(playerNames, isHuman);
-        
         // Pour l'instant, afficher un message pour confirmer
         JOptionPane.showMessageDialog(null, 
             "Le jeu va commencer avec " + playerCount + " joueurs !", 
             "UNO Game", 
             JOptionPane.INFORMATION_MESSAGE);
+        // Create and show the game board view, passing the initialized game
+        GameBoardPage gameBoardView = new GameBoardPage(unoGame);
+        gameBoardView.setVisible(true);
     }
     
     /**
