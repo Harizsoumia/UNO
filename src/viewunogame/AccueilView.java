@@ -1,30 +1,25 @@
-
 package viewunogame;
-
-
-
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-
+import java.util.ArrayList;
 
 import view.CustomPanel;
 import view.CustomButton;
 import view.CustomLabel;
 import view.CustomComboBox;
-
+import view.CustomFrame;
 import view.CustomTextField;
 import view.CustomImageLabel;
+import model.UnoGame;
+import model.Player;
 
-
-
-
-
-
-
-public class AccueilView extends JFrame {
+/**
+ * Vue d'accueil du jeu UNO
+ */
+public class AccueilView extends CustomFrame {
     
     // Composants de l'interface
     private CustomPanel mainPanel;
@@ -40,12 +35,16 @@ public class AccueilView extends JFrame {
     private CustomPanel[] playerPanels = new CustomPanel[4];
     private CustomButton startGameButton;
     
+    /**
+     * Constructeur
+     */
     public AccueilView() {
         // Configuration de la fenêtre
-        setTitle("UNO Game");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        super("UNO Game");
+        applyTheme("uno"); // Appliquer le thème UNO
         setSize(800, 600);
         setLocationRelativeTo(null);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         
         // Initialisation des composants
         initComponents();
@@ -64,8 +63,6 @@ public class AccueilView extends JFrame {
         
         // Panel du haut pour le titre et l'image
         CustomPanel topPanel = new CustomPanel(new BorderLayout(20, 0));
-    
-
         
         // Ajout de l'image UNO
         unoImageLabel = new CustomImageLabel();
@@ -176,6 +173,12 @@ public class AccueilView extends JFrame {
         // Panel du bas pour le bouton de démarrage
         CustomPanel bottomPanel = new CustomPanel(new FlowLayout(FlowLayout.CENTER));
         startGameButton = new CustomButton("Start Game");
+        startGameButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                startGame();
+            }
+        });
         bottomPanel.add(startGameButton);
         
         // Ajout du panel du bas au panel principal
@@ -221,6 +224,46 @@ public class AccueilView extends JFrame {
     }
     
     /**
+     * Démarre le jeu avec les paramètres sélectionnés
+     */
+    private void startGame() {
+        int playerCount = Integer.parseInt((String) playerCountComboBox.getSelectedItem());
+        ArrayList<Player> players = new ArrayList<>();
+    
+        // Collect player data from the UI
+        for (int i = 0; i < playerCount; i++) {
+            String name = playerNameFields[i].getText().trim();
+            
+            // Use default name if empty
+            if (name.isEmpty()) {
+                name = "Joueur " + (i + 1);
+            }
+            
+            String typeString = (String) playerTypeComboBoxes[i].getSelectedItem();
+            Player.PlayerType type = typeString.equals("Humain") ? 
+                                     Player.PlayerType.HUMAN : 
+                                     Player.PlayerType.BOT;
+            
+            players.add(new Player(name, type));
+        }
+    
+        // Initialize the game with collected players
+        UnoGame unoGame = new UnoGame();
+        unoGame.initializeGame(players);
+        
+        // Close the current view
+        dispose();
+        // Pour l'instant, afficher un message pour confirmer
+        JOptionPane.showMessageDialog(null, 
+            "Le jeu va commencer avec " + playerCount + " joueurs !", 
+            "UNO Game", 
+            JOptionPane.INFORMATION_MESSAGE);
+        // Create and show the game board view, passing the initialized game
+        GameBoardPage gameBoardView = new GameBoardPage(unoGame);
+        gameBoardView.setVisible(true);
+    }
+    
+    /**
      * Retourne le bouton de démarrage
      */
     public CustomButton getStartGameButton() {
@@ -233,11 +276,10 @@ public class AccueilView extends JFrame {
     public static void main(String[] args) {
         // Utiliser SwingUtilities pour s'assurer que l'interface est créée dans l'EDT
         SwingUtilities.invokeLater(new Runnable() {
-            
             @Override
             public void run() {
                 new AccueilView();
             }
         });
     }
-} 
+}
