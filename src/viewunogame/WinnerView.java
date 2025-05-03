@@ -1,14 +1,5 @@
 package viewunogame;
 
-
-
-
-
-
-import javax.swing.*;
-import java.awt.*;
-
-
 import view.CustomPanel;
 import view.CustomLabel;
 import view.CustomTextField;

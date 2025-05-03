@@ -3,10 +3,15 @@ package viewunogame;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
-
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.SwingUtilities;
 
 import model.Card;
 import model.Player;
@@ -20,11 +25,10 @@ import view.*;
 public class GameBoardPage extends CustomPanel {
     
     private UnoGame game;
-    private ArrayList<Player> players;
+    private List<Player> players;
     private Player currentPlayer;
     private int currentPlayerIndex;
-    
-    // UI Components
+     // UI Components
     private CustomPanel northPanel;
     private CustomPanel centerPanel;
     private CustomPanel southPanel;
@@ -62,6 +66,16 @@ public class GameBoardPage extends CustomPanel {
         initComponents();
         updateDisplay();
     }
+    public GameBoardPage(UnoGame game) {
+        this.game = game;
+        this.players = game.getPlayers();
+        this.currentPlayerIndex = game.getCurrentPlayerIndex();
+        this.currentPlayer = players.get(currentPlayerIndex);
+
+        initComponents(); // Ta méthode qui crée les composants visuels
+        updateDisplay();  // Affiche le jeu initial
+    }
+
     
     /**
      * Initialize all UI components
@@ -85,21 +99,25 @@ public class GameBoardPage extends CustomPanel {
         
         westPanel = createSidePanel(false);
         add(westPanel, BorderLayout.WEST);
+        initOpponentPanels();
+
+        // Ensuite update tous les éléments
+        updateDisplay();
     }
     
     /**
      * Creates the north panel with current player info
      */
     private CustomPanel createNorthPanel() {
-        CustomPanel panel = new CustomPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+        CustomPanel contentPanel = new CustomPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
         
         currentPlayerLabel = new CustomLabel();
         currentPlayerLabel.setFont(new Font("Arial", Font.BOLD, 24));
         currentPlayerLabel.setForeground(Color.WHITE);
-        panel.add(currentPlayerLabel);
+        contentPanel.add(currentPlayerLabel);
         
         currentPlayerIcon = new CustomImageLabel();
-        panel.add(currentPlayerIcon);
+        contentPanel.add(currentPlayerIcon);
         
         unoButton = new CustomButton("UNO!");
         unoButton.setFont(new Font("Arial", Font.BOLD, 16));
@@ -110,13 +128,24 @@ public class GameBoardPage extends CustomPanel {
                 handleUnoButtonClick();
             }
         });
-        panel.add(unoButton);
+        contentPanel.add(unoButton);
+        
+        // Wrap with ScrollPaneWrapper
+        ScrollPaneWrapper scrollPane = new ScrollPaneWrapper(contentPanel);
+        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneWrapper.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setVerticalScrollBarPolicy(ScrollPaneWrapper.VERTICAL_SCROLLBAR_NEVER);
+        scrollPane.setBorder(null);
+        
+        // Wrap the scrollPane in a CustomPanel to maintain layout consistency
+        CustomPanel panel = new CustomPanel(new BorderLayout());
+        panel.add(scrollPane, BorderLayout.CENTER);
         
         return panel;
     }
-    
+
     /**
      * Creates the center panel with discard and draw piles
+     * Note: This panel remains unchanged as per requirement
      */
     private CustomPanel createCenterPanel() {
         CustomPanel panel = new CustomPanel(new FlowLayout(FlowLayout.CENTER, 50, 0));
@@ -162,7 +191,7 @@ public class GameBoardPage extends CustomPanel {
         
         return panel;
     }
-    
+
     /**
      * Creates the south panel with current player's hand
      */
@@ -179,6 +208,7 @@ public class GameBoardPage extends CustomPanel {
         scrollPane.setHorizontalScrollBarPolicy(ScrollPaneWrapper.HORIZONTAL_SCROLLBAR_AS_NEEDED);
         scrollPane.setVerticalScrollBarPolicy(ScrollPaneWrapper.VERTICAL_SCROLLBAR_NEVER);
         scrollPane.setBorder(null);
+        scrollPane.setScrollIncrement(15);  // Add smooth scrolling
         
         panel.add(scrollPane, BorderLayout.CENTER);
         
@@ -190,53 +220,57 @@ public class GameBoardPage extends CustomPanel {
         
         return panel;
     }
-    
+
     /**
      * Creates a side panel (east or west) for opponent hands
      */
     private CustomPanel createSidePanel(boolean isEast) {
-        CustomPanel panel = new CustomPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setPreferredSize(new Dimension(150, 400));
-        
+        // Container panel that will hold the scroll pane
+        CustomPanel containerPanel = new CustomPanel(new BorderLayout());
+        containerPanel.setPreferredSize(new Dimension(150, 400));
+
+        // Panel that will contain opponent components
+        CustomPanel contentPanel = new CustomPanel();
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+
         // Calculate how many opponents to show on this side
         int totalOpponents = players.size() - 1;
         int opponentsOnThisSide = totalOpponents / 2;
         if (!isEast && totalOpponents % 2 != 0) {
             opponentsOnThisSide++; // Put extra opponent on west side
         }
-        
+
         // Initialize arrays for opponent panels if not already done
         if (opponentPanels == null) {
             opponentPanels = new CustomPanel[totalOpponents];
             opponentLabels = new CustomLabel[totalOpponents];
             opponentCardPanels = new CustomPanel[totalOpponents];
         }
-        
+
         // Create panels for each opponent on this side
         int startIndex = isEast ? 0 : (totalOpponents / 2) + (totalOpponents % 2);
         int endIndex = isEast ? opponentsOnThisSide : totalOpponents;
-        
+
         for (int i = startIndex; i < endIndex; i++) {
             int playerIndex = (currentPlayerIndex + i + 1) % players.size();
             Player opponent = players.get(playerIndex);
-            
+
             CustomPanel opponentPanel = new CustomPanel();
             opponentPanel.setLayout(new BoxLayout(opponentPanel, BoxLayout.Y_AXIS));
             opponentPanel.setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10));
-            
+
             // Opponent name and type
             CustomLabel nameLabel = new CustomLabel(opponent.getName());
             nameLabel.setForeground(Color.WHITE);
             nameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
             opponentPanel.add(nameLabel);
             opponentPanel.add(Box.createVerticalStrut(5));
-            
+
             // Icon based on player type
             CustomImageLabel iconLabel = new CustomImageLabel();
             String iconPath = opponent.getType() == Player.PlayerType.HUMAN ? 
-                "C:\\Users\\PC\\Downloads\\logo human.jpg" : 
-                "C:\\Users\\PC\\Downloads\\logobot.jpg";
+                    "C:/Users/Moi/Pictures/human.jpg" : 
+                    "C:/Users/Moi/Pictures/robot.jpg";          
             try {
                 ImageIcon icon = new ImageIcon(iconPath);
                 Image scaledIcon = icon.getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH);
@@ -244,28 +278,40 @@ public class GameBoardPage extends CustomPanel {
             } catch (Exception e) {
                 System.err.println("Error loading icon: " + e.getMessage());
             }
+
             iconLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
             opponentPanel.add(iconLabel);
             opponentPanel.add(Box.createVerticalStrut(10));
-            
+
             // Cards display (vertical stack)
             CustomPanel cardsPanel = new CustomPanel();
             cardsPanel.setLayout(new VerticalPileLayout());
             cardsPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-            
+
             opponentPanel.add(cardsPanel);
-            
+
             // Store references to update later
             opponentPanels[i] = opponentPanel;
             opponentLabels[i] = nameLabel;
             opponentCardPanels[i] = cardsPanel;
-            
-            panel.add(opponentPanel);
-            panel.add(Box.createVerticalGlue());
+
+            contentPanel.add(opponentPanel);
+            contentPanel.add(Box.createVerticalGlue());
         }
-        
-        return panel;
+
+        // Wrap with ScrollPaneWrapper
+        ScrollPaneWrapper scrollPane = new ScrollPaneWrapper(contentPanel);
+        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneWrapper.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.setVerticalScrollBarPolicy(ScrollPaneWrapper.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setBorder(null);
+        scrollPane.setScrollIncrement(12);  // For smoother scrolling
+
+        containerPanel.add(scrollPane, BorderLayout.CENTER);
+
+        return containerPanel;
     }
+
+
     
     /**
      * Updates all display elements based on current game state
@@ -286,8 +332,7 @@ public class GameBoardPage extends CustomPanel {
         
         // Update player icon
         String iconPath = currentPlayer.getType() == Player.PlayerType.HUMAN ? 
-            "C:\\Users\\PC\\Downloads\\logo human.jpg" : 
-            "C:\\Users\\PC\\Downloads\\logobot.jpg";
+        		"C:/Users/Moi/Pictures/human.jpg" : "C:/Users/Moi/Pictures/robot.jpg";
         try {
             ImageIcon icon = new ImageIcon(iconPath);
             Image scaledIcon = icon.getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH);
@@ -385,13 +430,14 @@ public class GameBoardPage extends CustomPanel {
             }
             
             if (cardIndex >= 0) {
+                Card playedCard = currentPlayer.playCard(cardIndex);
+
                 // Handle wild card color selection
                 if (card.getColor() == Card.Color.WILD) {
-                    showColorPicker(card);
+                    showColorPicker(playedCard);
                 }
                 
                 // Play the card
-                Card playedCard = currentPlayer.playCard(cardIndex);
                 game.playCard(playedCard);
                 
                 // Show effect text for special cards
@@ -419,7 +465,7 @@ public class GameBoardPage extends CustomPanel {
      * Handles drawing a card
      */
     private void handleDrawCard() {
-        Card drawnCard = game.drawCardFromDeck();
+    	Card drawnCard = game.playerDrawsCard(currentPlayer);
         if (drawnCard != null) {
             currentPlayer.addCard(drawnCard);
             moveToNextPlayer();
@@ -470,7 +516,7 @@ public class GameBoardPage extends CustomPanel {
     /**
      * Handles UNO button click
      */
-    private void handleUnoButtonClick() {
+    public void handleUnoButtonClick() {
         if (unoButtonEnabled && currentPlayer.getHand().size() == 1) {
             showFloatingText(currentPlayer.getName() + " says UNO!");
             
@@ -492,7 +538,7 @@ public class GameBoardPage extends CustomPanel {
     /**
      * Shows the winner screen
      */
-    private void showWinnerScreen(String winnerName) {
+    public void showWinnerScreen(String winnerName) {
         Container frame = SwingUtilities.getWindowAncestor(this);
         if (frame instanceof Window) {
             ((Window)frame).dispose();
@@ -504,7 +550,7 @@ public class GameBoardPage extends CustomPanel {
     /**
      * Moves to the next player in sequence
      */
-    private void moveToNextPlayer() {
+    public void moveToNextPlayer() {
         if (game.isClockwise()) {
             currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
         } else {
@@ -516,7 +562,7 @@ public class GameBoardPage extends CustomPanel {
     /**
      * Checks if a card is a special action card
      */
-    private boolean isSpecialCard(Card card) {
+    public boolean isSpecialCard(Card card) {
         return card.getValue() == Card.Value.SKIP || 
                card.getValue() == Card.Value.REVERSE || 
                card.getValue() == Card.Value.DRAW_TWO || 
@@ -600,4 +646,36 @@ public class GameBoardPage extends CustomPanel {
             }
         }
     }
+    private void initOpponentPanels() {
+        int totalPlayers = players.size();
+        int opponentCount = totalPlayers - 1;
+
+        opponentPanels = new CustomPanel[opponentCount];
+        opponentLabels = new CustomLabel[opponentCount];
+        opponentCardPanels = new CustomPanel[opponentCount];
+
+        int j = 0;
+        for (int i = 0; i < totalPlayers; i++) {
+            if (i != currentPlayerIndex) {
+                CustomPanel opponentPanel = new CustomPanel();
+                opponentPanel.setLayout(new BoxLayout(opponentPanel, BoxLayout.Y_AXIS));
+                
+                CustomLabel nameLabel = new CustomLabel(players.get(i).getName());
+                CustomPanel cardPanel = new CustomPanel();
+                cardPanel.setLayout(new FlowLayout());
+
+                opponentPanels[j] = opponentPanel;
+                opponentLabels[j] = nameLabel;
+                opponentCardPanels[j] = cardPanel;
+
+                opponentPanel.add(nameLabel);
+                opponentPanel.add(cardPanel);
+
+                j++;
+            }
+        }
+    }
+
+
+   
 }

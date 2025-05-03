@@ -24,6 +24,10 @@ public class Card {
         this.color = color;
         this.value = value;
     }
+    public void setColor(Color color) {
+        this.color = color;
+    }
+
 
     public Color getColor() {
         // If a wild color was chosen, return that, otherwise the card's base color
@@ -99,4 +103,8 @@ public class Card {
     public int hashCode() {
         return Objects.hash(color, value);
     }
+    public boolean isWild() {
+        return value == Value.WILD || value == Value.WILD_DRAW_FOUR;
+    }
+
 }

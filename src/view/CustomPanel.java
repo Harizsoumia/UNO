@@ -1,16 +1,19 @@
 package view;
 
+/**
+ *
+ * @author PC
+ */
 
-
-import javax.swing.JPanel;
-import java.awt.Color;
-import java.awt.LayoutManager;
+// CustomPanel.java
+import javax.swing.*;
+import java.awt.*;
 
 public class CustomPanel extends JPanel {
     public CustomPanel() {
         setBackground(new Color(148, 0, 211));
     }
-
+    
     public CustomPanel(LayoutManager layout) {
         super(layout);
         setBackground(new Color(148, 0, 211));

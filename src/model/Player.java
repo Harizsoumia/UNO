@@ -1,7 +1,6 @@
 package model;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -15,7 +14,7 @@ public class Player {
 
     private final String name;
     private final PlayerType type;
-    private final ArrayList<Card> hand;
+    private final ArrayList<Card> hand;  // Keep as a modifiable list.
 
     public Player(String name, PlayerType type) {
         this.name = (name == null || name.trim().isEmpty()) ? "Player" : name; // Default name
@@ -32,23 +31,18 @@ public class Player {
     }
 
     /**
-    * Returns an unmodifiable view of the player's hand.
-    * Prevents external modification of the hand list directly.
-    */
+     * Returns the player's hand. Now it's a modifiable list, allowing external modification.
+     */
     public List<Card> getHand() {
-       // Return a copy to prevent modification issues if CardComponent holds references
-       return Collections.unmodifiableList(hand);
-        // If CardComponent doesn't hold references long-term, this is safer:
-        // return Collections.unmodifiableList(hand);
+        return hand;  // Return directly as modifiable list
     }
 
-     /**
+    /**
      * Returns the number of cards in the player's hand.
      */
     public int getHandSize() {
         return hand.size();
     }
-
 
     public void addCard(Card card) {
         if (card != null) {
@@ -79,7 +73,6 @@ public class Player {
          return hand.remove(card);
     }
 
-
     public boolean hasWon() {
         return hand.isEmpty();
     }
@@ -93,26 +86,26 @@ public class Player {
     public int findValidCardIndex(Card topCard) {
         for (int i = 0; i < hand.size(); i++) {
             if (hand.get(i).canPlayOn(topCard)) {
-                 // Add check for Wild Draw Four rule if needed (can only play if no other card matches color)
+                // Add check for Wild Draw Four rule if needed (can only play if no other card matches color)
                 if (hand.get(i).getActualColor() == Card.Color.WILD && hand.get(i).getValue() == Card.Value.WILD_DRAW_FOUR) {
-                     if (!canPlayWildDrawFour(topCard)) {
-                         continue; // Cannot legally play WD4
-                     }
-                 }
+                    if (!canPlayWildDrawFour(topCard)) {
+                        continue; // Cannot legally play WD4
+                    }
+                }
                 return i;
             }
         }
         return -1; // No valid card found
     }
 
-     /**
+    /**
      * Checks if a Wild Draw Four can be legally played according to standard rules.
      * (Can only be played if the player has no other card matching the *current*
      * color of the discard pile).
      * @param topCard The card on top of the discard pile.
      * @return true if Wild Draw Four is a legal move, false otherwise.
      */
-     public boolean canPlayWildDrawFour(Card topCard) {
+    public boolean canPlayWildDrawFour(Card topCard) {
         Card.Color requiredColor = topCard.getColor(); // Use the *effective* color
         for (Card cardInHand : hand) {
             if (cardInHand.getActualColor() != Card.Color.WILD && cardInHand.getColor() == requiredColor) {
@@ -120,8 +113,7 @@ public class Player {
             }
         }
         return true; // No other card matches the color, WD4 is legal
-     }
-
+    }
 
     /**
      * Simple bot logic to choose a color for a Wild card.
@@ -153,7 +145,7 @@ public class Player {
         return Card.Color.values()[maxIndex];
     }
 
-     @Override
+    @Override
     public String toString() {
         return name + " (" + type + ")";
     }
