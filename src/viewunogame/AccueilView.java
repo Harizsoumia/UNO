@@ -227,59 +227,52 @@ public class AccueilView extends CustomFrame {
      * Démarre le jeu avec les paramètres sélectionnés
      */
     private void startGame() {
+        // Get the selected number of players from the ComboBox
         int playerCount = Integer.parseInt((String) playerCountComboBox.getSelectedItem());
         ArrayList<Player> players = new ArrayList<>();
-    
-        // Collect player data from the UI
+
+        // Collect player data from the UI (player names and types)
         for (int i = 0; i < playerCount; i++) {
+            // Get the player's name from the corresponding text field
             String name = playerNameFields[i].getText().trim();
-            
-            // Use default name if empty
+
+            // Use a default name if the field is empty
             if (name.isEmpty()) {
                 name = "Joueur " + (i + 1);
             }
-            
+
+            // Get the player's type (Human or Bot) from the corresponding ComboBox
             String typeString = (String) playerTypeComboBoxes[i].getSelectedItem();
-            Player.PlayerType type = typeString.equals("Humain") ? 
-                                     Player.PlayerType.HUMAN : 
-                                     Player.PlayerType.BOT;
-            
+            Player.PlayerType type = typeString.equals("Humain") ? Player.PlayerType.HUMAN : Player.PlayerType.BOT;
+
+            // Add the player to the list
             players.add(new Player(name, type));
         }
-    
-        // Initialize the game with collected players
+
+        // Initialize the UnoGame with the created players
         UnoGame unoGame = new UnoGame();
         unoGame.initializeGame(players);
-        
-        // Close the current view
+
+        // Dispose of the current view (the start game page)
         dispose();
-        // Pour l'instant, afficher un message pour confirmer
+
+        // Show a confirmation message before transitioning to the game view
         JOptionPane.showMessageDialog(null, 
             "Le jeu va commencer avec " + playerCount + " joueurs !", 
             "UNO Game", 
             JOptionPane.INFORMATION_MESSAGE);
-        // Create and show the game board view, passing the initialized game
+
+        // Create a new JFrame to hold the game board
+        JFrame gameFrame = new JFrame("UNO Game");
+        gameFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        gameFrame.setSize(1000, 800);
+        gameFrame.setLocationRelativeTo(null);
+        
+        // Create and add the GameBoardPage to the frame
         GameBoardPage gameBoardView = new GameBoardPage(unoGame);
-        gameBoardView.setVisible(true);
+        gameFrame.add(gameBoardView);
+        gameFrame.setVisible(true);
     }
-    
-    /**
-     * Retourne le bouton de démarrage
-     */
-    public CustomButton getStartGameButton() {
-        return startGameButton;
-    }
-    
-    /**
-     * Méthode principale pour tester la page d'accueil
-     */
-    public static void main(String[] args) {
-        // Utiliser SwingUtilities pour s'assurer que l'interface est créée dans l'EDT
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                new AccueilView();
-            }
-        });
-    }
+
 }
+
