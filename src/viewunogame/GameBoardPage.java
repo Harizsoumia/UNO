@@ -1,681 +1,1329 @@
-package viewunogame;
+ package viewunogame;
+
+
 
 import java.awt.*;
-import java.awt.event.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
 
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
-import javax.swing.SwingUtilities;
+import java.awt.event.*;
+
+import javax.swing.*;
 
 import model.Card;
+
 import model.Player;
+
 import model.UnoGame;
+
 import view.*;
 
-/**
- * GameBoardPage - Main game interface for the UNO game
- * Displays the game board with player hands, discard pile, and draw pile
- */
+import java.util.List;
+import java.awt.event.ActionEvent;
+
+import java.awt.event.ActionListener;
+
+
+
 public class GameBoardPage extends CustomPanel {
-    
-    private UnoGame game;
-    private List<Player> players;
-    private Player currentPlayer;
-    private int currentPlayerIndex;
-     // UI Components
-    private CustomPanel northPanel;
-    private CustomPanel centerPanel;
-    private CustomPanel southPanel;
-    private CustomPanel eastPanel;
-    private CustomPanel westPanel;
-    
-    private CustomLabel currentPlayerLabel;
-    private CustomImageLabel currentPlayerIcon;
-    
-    private CardComponent discardPileComponent;
-    private CardComponent drawPileComponent;
-    
-    private CustomPanel handPanel;
-    private CustomPanel[] opponentPanels;
-    private CustomLabel[] opponentLabels;
-    private CustomPanel[] opponentCardPanels;
-    
-    private CustomButton unoButton;
-    private boolean unoButtonEnabled = true;
-    
-    /**
-     * Constructor for the game board page
-     * @param game The UNO game instance
-     * @param players List of players in the game
-     */
-    public GameBoardPage(UnoGame game, ArrayList<Player> players) {
-        super(new BorderLayout(10, 10));
-        this.game = game;
-        this.players = players;
-        this.currentPlayerIndex = 0;
-        this.currentPlayer = players.get(currentPlayerIndex);
-        
-        setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
-        
-        initComponents();
-        updateDisplay();
+
+
+
+private UnoGame game;
+
+private List<Player> players;
+
+private Player currentPlayer;
+
+private int currentPlayerIndex;
+
+
+
+// UI Components
+
+private CustomPanel northPanel;
+
+private CustomPanel centerPanel;
+
+private CustomPanel southPanel;
+
+private CustomPanel eastPanel;
+
+private CustomPanel westPanel;
+
+
+
+private CustomLabel currentPlayerLabel;
+
+private CustomImageLabel currentPlayerIcon;
+
+
+
+private CardComponent discardPileComponent;
+
+private CardComponent drawPileComponent;
+
+
+
+private CustomPanel handPanel;
+
+private CustomPanel[] playerPanels;
+
+private CustomLabel[] playerNameLabels;
+
+
+
+private CustomButton unoButton;
+
+private boolean unoButtonEnabled = true;
+
+
+
+// Constructor
+
+public GameBoardPage(UnoGame game) {
+
+this.game = game;
+
+this.players = game.getPlayers();
+
+this.currentPlayerIndex = game.getCurrentPlayerIndex();
+
+this.currentPlayer = players.get(currentPlayerIndex);
+
+
+
+setLayout(new BorderLayout());
+
+setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+initComponents();
+
+updateDisplay();
+
+}
+
+
+
+/**
+
+* Initialize all UI components
+
+*/
+
+private void initComponents() {
+
+// Center panel - Discard and Draw piles
+
+centerPanel = createCenterPanel();
+
+add(centerPanel, BorderLayout.CENTER);
+
+
+// Initialize player panels based on number of players
+
+initPlayerPanels();
+
+
+// North panel - Current player info
+
+northPanel = createNorthPanel();
+
+add(northPanel, BorderLayout.NORTH);
+
+}
+
+
+
+/**
+
+* Creates the north panel with current player info
+
+*/
+
+private CustomPanel createNorthPanel() {
+
+CustomPanel contentPanel = new CustomPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+
+
+currentPlayerLabel = new CustomLabel();
+
+currentPlayerLabel.setFont(new Font("Arial", Font.BOLD, 24));
+
+currentPlayerLabel.setForeground(Color.WHITE);
+
+contentPanel.add(currentPlayerLabel);
+
+
+currentPlayerIcon = new CustomImageLabel();
+
+contentPanel.add(currentPlayerIcon);
+
+
+unoButton = new CustomButton("UNO!");
+
+unoButton.setFont(new Font("Arial", Font.BOLD, 16));
+
+unoButton.setPreferredSize(new Dimension(80, 40));
+
+unoButton.addMouseListener(new MouseAdapter() {
+
+@Override
+
+public void mouseClicked(MouseEvent e) {
+
+handleUnoButtonClick();
+
+}
+
+});
+
+contentPanel.add(unoButton);
+
+
+ScrollPaneWrapper scrollPane = new ScrollPaneWrapper(contentPanel);
+
+scrollPane.setHorizontalScrollBarPolicy(ScrollPaneWrapper.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+
+scrollPane.setVerticalScrollBarPolicy(ScrollPaneWrapper.VERTICAL_SCROLLBAR_NEVER);
+
+scrollPane.setBorder(null);
+
+
+CustomPanel panel = new CustomPanel(new BorderLayout());
+
+panel.add(scrollPane, BorderLayout.CENTER);
+
+
+return panel;
+
+}
+
+
+
+/**
+
+* Creates the center panel with discard pile, draw pile
+
+*/
+
+private CustomPanel createCenterPanel() {
+
+CustomPanel panel = new CustomPanel(new FlowLayout(FlowLayout.CENTER, 50, 0));
+
+
+// Discard pile
+
+Card topCard = game.getTopCard();
+
+discardPileComponent = new CardComponent(topCard);
+
+discardPileComponent.setPreferredSize(new Dimension(120, 180));
+
+
+CustomLabel discardLabel = new CustomLabel("Discard Pile");
+
+discardLabel.setForeground(Color.WHITE);
+
+
+CustomPanel discardPanel = new CustomPanel();
+
+discardPanel.setLayout(new BoxLayout(discardPanel, BoxLayout.Y_AXIS));
+
+discardPanel.add(discardPileComponent);
+
+discardPanel.add(Box.createVerticalStrut(10));
+
+discardPanel.add(discardLabel);
+
+
+panel.add(discardPanel);
+
+
+// Draw pile
+
+drawPileComponent = new CardComponent(null, true); // Using the back of the card
+
+drawPileComponent.setPreferredSize(new Dimension(120, 180));
+
+drawPileComponent.addMouseListener(new MouseAdapter() {
+
+@Override
+
+public void mouseClicked(MouseEvent e) {
+
+handleDrawCard();
+
+}
+
+});
+
+
+CustomLabel drawLabel = new CustomLabel("Draw Pile");
+
+drawLabel.setForeground(Color.WHITE);
+
+
+CustomPanel drawPanel = new CustomPanel();
+
+drawPanel.setLayout(new BoxLayout(drawPanel, BoxLayout.Y_AXIS));
+
+drawPanel.add(drawPileComponent);
+
+drawPanel.add(Box.createVerticalStrut(10));
+
+drawPanel.add(drawLabel);
+
+
+panel.add(drawPanel);
+
+
+return panel;
+
+}
+
+
+
+/**
+
+* Initializes all player panels based on player count
+
+*/
+
+private void initPlayerPanels() {
+
+int playerCount = players.size();
+
+playerPanels = new CustomPanel[playerCount];
+
+playerNameLabels = new CustomLabel[playerCount];
+
+
+// Always place the human player (first player) at the south position
+
+southPanel = createPlayerPanel(0);
+
+add(southPanel, BorderLayout.SOUTH);
+
+
+// Position other players based on the total number of players
+
+if (playerCount >= 2) {
+
+northPanel = createPlayerPanel(1);
+
+add(northPanel, BorderLayout.NORTH);
+
+}
+
+
+if (playerCount >= 3) {
+
+eastPanel = createPlayerPanel(2);
+
+add(eastPanel, BorderLayout.EAST);
+
+}
+
+
+if (playerCount >= 4) {
+
+westPanel = createPlayerPanel(3);
+
+add(westPanel, BorderLayout.WEST);
+
+}
+
+}
+
+
+/**
+
+* Creates a panel for displaying a player's hand
+
+*/
+
+private CustomPanel createPlayerPanel(int playerIndex) {
+
+Player player = players.get(playerIndex);
+
+
+// Create panel with BorderLayout
+
+CustomPanel panel = new CustomPanel(new BorderLayout());
+
+panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+
+// Create name label
+
+CustomLabel nameLabel = new CustomLabel(player.getName() + " (" + player.getType() + ")");
+
+nameLabel.setForeground(Color.WHITE);
+
+nameLabel.setHorizontalAlignment(SwingConstants.CENTER);
+
+panel.add(nameLabel, BorderLayout.NORTH);
+
+playerNameLabels[playerIndex] = nameLabel;
+
+
+// Create hand panel with cards
+
+CustomPanel cardsPanel = new CustomPanel();
+
+
+// Use appropriate layout based on position
+
+if (playerIndex == 0 || playerIndex == 1) { // South or North
+
+cardsPanel.setLayout(new PileLayout());
+
+} else { // East or West
+
+cardsPanel.setLayout(new VerticalPileLayout());
+
+}
+
+
+// Add cards to the panel
+
+for (Card card : player.getHand()) {
+
+CardComponent cardComp;
+
+// Show cards only for the human player (index 0)
+
+if (playerIndex == 0 || player.getType() == Player.PlayerType.HUMAN) {
+
+cardComp = new CardComponent(card);
+
+// Add click listeners only to the human player's cards
+
+cardComp.addMouseListener(createCardClickListener(card));
+
+} else {
+
+cardComp = new CardComponent(null, true); // Card back for opponents
+
+}
+
+
+// Set appropriate size based on position
+
+if (playerIndex == 0 || playerIndex == 1) { // South or North
+
+cardComp.setPreferredSize(new Dimension(100, 150));
+
+} else { // East or West
+
+cardComp.setPreferredSize(new Dimension(80, 120));
+
+}
+
+
+cardsPanel.add(cardComp);
+
+}
+
+
+// Add scrolling for the cards
+
+ScrollPaneWrapper scrollPane = new ScrollPaneWrapper(cardsPanel);
+
+scrollPane.setHorizontalScrollBarPolicy(ScrollPaneWrapper.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+
+scrollPane.setVerticalScrollBarPolicy(ScrollPaneWrapper.VERTICAL_SCROLLBAR_NEVER);
+
+scrollPane.setBorder(null);
+
+
+panel.add(scrollPane, BorderLayout.CENTER);
+
+playerPanels[playerIndex] = panel;
+
+
+return panel;
+
+}
+
+
+/**
+
+* Updates all display elements based on current game state
+
+*/
+
+public void updateDisplay() {
+
+updateCurrentPlayerInfo();
+
+updateDiscardPile();
+
+updatePlayerPanels();
+
+}
+
+
+/**
+
+* Updates the current player information
+
+*/
+
+private void updateCurrentPlayerInfo() {
+
+currentPlayer = players.get(currentPlayerIndex);
+
+currentPlayerLabel.setText(currentPlayer.getName() + "'s Turn");
+
+
+// Update player icon
+
+String iconPath = currentPlayer.getType() == Player.PlayerType.HUMAN ?
+
+"C:/Users/Moi/Pictures/human.jpg" : "C:/Users/Moi/Pictures/robot.jpg";
+
+try {
+
+ImageIcon icon = new ImageIcon(iconPath);
+
+Image scaledIcon = icon.getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH);
+
+currentPlayerIcon.setIcon(new ImageIcon(scaledIcon));
+
+} catch (Exception e) {
+
+System.err.println("Error loading icon: " + e.getMessage());
+
+}
+
+}
+
+
+/**
+
+* Updates the discard pile display
+
+*/
+
+private void updateDiscardPile() {
+
+Card topCard = game.getTopCard();
+
+if (topCard != null) {
+
+discardPileComponent.setCard(topCard);
+
+}
+
+}
+
+
+/**
+
+* Updates all player panels
+
+*/
+
+private void updatePlayerPanels() {
+
+for (int i = 0; i < players.size(); i++) {
+
+Player player = players.get(i);
+
+
+// Update player name label with card count
+
+playerNameLabels[i].setText(player.getName() + " (" + player.getHand().size() + " cards)");
+
+
+// Get the cards panel
+
+CustomPanel panel = playerPanels[i];
+
+Component[] components = panel.getComponents();
+
+ScrollPaneWrapper scrollPane = null;
+
+
+// Find the scroll pane component
+
+for (Component comp : components) {
+
+if (comp instanceof ScrollPaneWrapper) {
+
+scrollPane = (ScrollPaneWrapper) comp;
+
+break;
+
+}
+
+}
+
+
+if (scrollPane != null) {
+
+// Get the viewport component (cards panel)
+
+Component viewComponent = scrollPane.getViewport().getView();
+
+if (viewComponent instanceof CustomPanel) {
+
+CustomPanel cardsPanel = (CustomPanel) viewComponent;
+
+cardsPanel.removeAll();
+
+
+// Add updated cards
+
+for (Card card : player.getHand()) {
+
+CardComponent cardComp;
+
+// Show cards only for the current player or if it's a human player
+
+if (i == 0 || player.getType() == Player.PlayerType.HUMAN) {
+
+cardComp = new CardComponent(card);
+
+// Add click listeners only to the current player's cards
+
+if (i == currentPlayerIndex) {
+
+cardComp.addMouseListener(createCardClickListener(card));
+
+}
+
+} else {
+
+cardComp = new CardComponent(null, true); // Card back for opponents
+
+}
+
+
+// Set appropriate size based on position
+
+if (i == 0 || i == 1) { // South or North
+
+cardComp.setPreferredSize(new Dimension(100, 150));
+
+} else { // East or West
+
+cardComp.setPreferredSize(new Dimension(80, 120));
+
+}
+
+
+cardsPanel.add(cardComp);
+
+}
+
+
+cardsPanel.revalidate();
+
+cardsPanel.repaint();
+
+}
+
+}
+
+}
+
+}
+
+
+/**
+
+* Creates a mouse listener for handling card clicks
+
+*/
+
+private MouseListener createCardClickListener(Card card) {
+
+return new MouseAdapter() {
+
+@Override
+
+public void mouseClicked(MouseEvent e) {
+
+handleCardPlay(card);
+
+}
+
+};
+
+}
+
+
+/**
+
+* Handles playing a card
+
+*/
+
+private void handleCardPlay(Card card) {
+
+// Only allow human players to play cards
+
+if (currentPlayer.getType() != Player.PlayerType.HUMAN) {
+
+return;
+
+}
+
+
+Card topCard = game.getTopCard();
+
+
+if (card.canPlayOn(topCard)) {
+
+// Find card index in player's hand
+
+int cardIndex = -1;
+
+for (int i = 0; i < currentPlayer.getHand().size(); i++) {
+
+if (currentPlayer.getHand().get(i).equals(card)) {
+
+cardIndex = i;
+
+break;
+
+}
+
+}
+
+
+if (cardIndex >= 0) {
+
+Card playedCard = currentPlayer.playCard(cardIndex);
+
+
+// Vérification de l'UNO oublié
+
+if (currentPlayer.getHand().size() == 1 && !currentPlayer.hasCalledUno()) {
+
+showFloatingText("UNO oublié ! +2 cartes pour " + currentPlayer.getName());
+
+
+// Donner une pénalité : tirer 2 cartes
+
+for (int i = 0; i < 2; i++) {
+
+Card penaltyCard = game.playerDrawsCard(currentPlayer);
+
+if (penaltyCard != null) {
+
+currentPlayer.addCard(penaltyCard);
+
+}
+
+}
+
+}
+
+
+
+// Handle wild card color selection
+
+if (card.getColor() == Card.Color.WILD) {
+
+showColorPicker(playedCard);
+
+}
+
+
+// Play the card
+
+game.playCard(playedCard);
+
+
+// Show effect text for special cards
+
+if (isSpecialCard(card)) {
+
+showFloatingText(currentPlayer.getName() + " played " + card.getValue() + "!");
+
+}
+
+
+// Check for win condition
+
+if (currentPlayer.hasWon()) {
+
+showDialogMessage(currentPlayer.getName() + " wins the game!");
+
+showWinnerScreen(currentPlayer.getName());
+
+return;
+
+}
+
+
+// Move to next player after processing any special card effects
+
+moveToNextPlayer();
+
+updateDisplay();
+
+
+// If next player is a bot, perform bot move after a short delay
+
+if (currentPlayer.getType() == Player.PlayerType.BOT) {
+
+Timer timer = new Timer(1000, new ActionListener() {
+
+@Override
+
+public void actionPerformed(ActionEvent e) {
+
+performBotMove();
+
+}
+
+});
+
+timer.setRepeats(false);
+
+timer.start();
+
+}
+
+}
+
+} else {
+
+showDialogMessage("Invalid move! This card cannot be played on the current top card.");
+
+}
+
+}
+
+
+private void handleDrawCard() {
+    // Only allow the current player to draw cards
+    if (currentPlayer.getType() != Player.PlayerType.HUMAN) {
+        return;
     }
-    public GameBoardPage(UnoGame game) {
-        this.game = game;
-        this.players = game.getPlayers();
-        this.currentPlayerIndex = game.getCurrentPlayerIndex();
-        this.currentPlayer = players.get(currentPlayerIndex);
 
-        initComponents(); // Ta méthode qui crée les composants visuels
-        updateDisplay();  // Affiche le jeu initial
-    }
+    Card drawnCard = game.playerDrawsCard(currentPlayer);
 
-    
-    /**
-     * Initialize all UI components
-     */
-    private void initComponents() {
-        // North panel - Current player info
-        northPanel = createNorthPanel();
-        add(northPanel, BorderLayout.NORTH);
-        
-        // Center panel - Discard and Draw piles
-        centerPanel = createCenterPanel();
-        add(centerPanel, BorderLayout.CENTER);
-        
-        // South panel - Current player's hand
-        southPanel = createSouthPanel();
-        add(southPanel, BorderLayout.SOUTH);
-        
-        // East and West panels - Opponent hands
-        eastPanel = createSidePanel(true);
-        add(eastPanel, BorderLayout.EAST);
-        
-        westPanel = createSidePanel(false);
-        add(westPanel, BorderLayout.WEST);
-        initOpponentPanels();
+    if (drawnCard != null) {
+        currentPlayer.addCard(drawnCard);
+        showFloatingText(currentPlayer.getName() + " drew a card");
 
-        // Ensuite update tous les éléments
-        updateDisplay();
-    }
-    
-    /**
-     * Creates the north panel with current player info
-     */
-    private CustomPanel createNorthPanel() {
-        CustomPanel contentPanel = new CustomPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
-        
-        currentPlayerLabel = new CustomLabel();
-        currentPlayerLabel.setFont(new Font("Arial", Font.BOLD, 24));
-        currentPlayerLabel.setForeground(Color.WHITE);
-        contentPanel.add(currentPlayerLabel);
-        
-        currentPlayerIcon = new CustomImageLabel();
-        contentPanel.add(currentPlayerIcon);
-        
-        unoButton = new CustomButton("UNO!");
-        unoButton.setFont(new Font("Arial", Font.BOLD, 16));
-        unoButton.setPreferredSize(new Dimension(80, 40));
-        unoButton.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                handleUnoButtonClick();
-            }
-        });
-        contentPanel.add(unoButton);
-        
-        // Wrap with ScrollPaneWrapper
-        ScrollPaneWrapper scrollPane = new ScrollPaneWrapper(contentPanel);
-        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneWrapper.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        scrollPane.setVerticalScrollBarPolicy(ScrollPaneWrapper.VERTICAL_SCROLLBAR_NEVER);
-        scrollPane.setBorder(null);
-        
-        // Wrap the scrollPane in a CustomPanel to maintain layout consistency
-        CustomPanel panel = new CustomPanel(new BorderLayout());
-        panel.add(scrollPane, BorderLayout.CENTER);
-        
-        return panel;
-    }
-
-    /**
-     * Creates the center panel with discard and draw piles
-     * Note: This panel remains unchanged as per requirement
-     */
-    private CustomPanel createCenterPanel() {
-        CustomPanel panel = new CustomPanel(new FlowLayout(FlowLayout.CENTER, 50, 0));
-        
-        // Discard pile
-        Card topCard = game.getTopCard(); // Get top card from game
-        discardPileComponent = new CardComponent(topCard);
-        discardPileComponent.setPreferredSize(new Dimension(120, 180));
-        
-        // Label for discard pile
-        CustomLabel discardLabel = new CustomLabel("Discard Pile");
-        discardLabel.setForeground(Color.WHITE);
-        
-        CustomPanel discardPanel = new CustomPanel();
-        discardPanel.setLayout(new BoxLayout(discardPanel, BoxLayout.Y_AXIS));
-        discardPanel.add(discardPileComponent);
-        discardPanel.add(Box.createVerticalStrut(10));
-        discardPanel.add(discardLabel);
-        
-        panel.add(discardPanel);
-        
-        // Draw pile
-        drawPileComponent = new CardComponent(null, true); // Using back of card
-        drawPileComponent.setPreferredSize(new Dimension(120, 180));
-        drawPileComponent.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                handleDrawCard();
-            }
-        });
-        
-        // Label for draw pile
-        CustomLabel drawLabel = new CustomLabel("Draw Pile");
-        drawLabel.setForeground(Color.WHITE);
-        
-        CustomPanel drawPanel = new CustomPanel();
-        drawPanel.setLayout(new BoxLayout(drawPanel, BoxLayout.Y_AXIS));
-        drawPanel.add(drawPileComponent);
-        drawPanel.add(Box.createVerticalStrut(10));
-        drawPanel.add(drawLabel);
-        
-        panel.add(drawPanel);
-        
-        return panel;
-    }
-
-    /**
-     * Creates the south panel with current player's hand
-     */
-    private CustomPanel createSouthPanel() {
-        CustomPanel panel = new CustomPanel(new BorderLayout());
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
-        
-        // Create hand panel with pile layout
-        handPanel = new CustomPanel();
-        handPanel.setLayout(new PileLayout());
-        
-        // Add scroll pane for hand (horizontal scrolling)
-        ScrollPaneWrapper scrollPane = new ScrollPaneWrapper(handPanel);
-        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneWrapper.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        scrollPane.setVerticalScrollBarPolicy(ScrollPaneWrapper.VERTICAL_SCROLLBAR_NEVER);
-        scrollPane.setBorder(null);
-        scrollPane.setScrollIncrement(15);  // Add smooth scrolling
-        
-        panel.add(scrollPane, BorderLayout.CENTER);
-        
-        // Label for player's hand
-        CustomLabel handLabel = new CustomLabel("Your Hand");
-        handLabel.setForeground(Color.WHITE);
-        handLabel.setHorizontalAlignment(CustomLabel.CENTER);
-        panel.add(handLabel, BorderLayout.NORTH);
-        
-        return panel;
-    }
-
-    /**
-     * Creates a side panel (east or west) for opponent hands
-     */
-    private CustomPanel createSidePanel(boolean isEast) {
-        // Container panel that will hold the scroll pane
-        CustomPanel containerPanel = new CustomPanel(new BorderLayout());
-        containerPanel.setPreferredSize(new Dimension(150, 400));
-
-        // Panel that will contain opponent components
-        CustomPanel contentPanel = new CustomPanel();
-        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
-
-        // Calculate how many opponents to show on this side
-        int totalOpponents = players.size() - 1;
-        int opponentsOnThisSide = totalOpponents / 2;
-        if (!isEast && totalOpponents % 2 != 0) {
-            opponentsOnThisSide++; // Put extra opponent on west side
-        }
-
-        // Initialize arrays for opponent panels if not already done
-        if (opponentPanels == null) {
-            opponentPanels = new CustomPanel[totalOpponents];
-            opponentLabels = new CustomLabel[totalOpponents];
-            opponentCardPanels = new CustomPanel[totalOpponents];
-        }
-
-        // Create panels for each opponent on this side
-        int startIndex = isEast ? 0 : (totalOpponents / 2) + (totalOpponents % 2);
-        int endIndex = isEast ? opponentsOnThisSide : totalOpponents;
-
-        for (int i = startIndex; i < endIndex; i++) {
-            int playerIndex = (currentPlayerIndex + i + 1) % players.size();
-            Player opponent = players.get(playerIndex);
-
-            CustomPanel opponentPanel = new CustomPanel();
-            opponentPanel.setLayout(new BoxLayout(opponentPanel, BoxLayout.Y_AXIS));
-            opponentPanel.setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10));
-
-            // Opponent name and type
-            CustomLabel nameLabel = new CustomLabel(opponent.getName());
-            nameLabel.setForeground(Color.WHITE);
-            nameLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-            opponentPanel.add(nameLabel);
-            opponentPanel.add(Box.createVerticalStrut(5));
-
-            // Icon based on player type
-            CustomImageLabel iconLabel = new CustomImageLabel();
-            String iconPath = opponent.getType() == Player.PlayerType.HUMAN ? 
-                    "C:/Users/Moi/Pictures/human.jpg" : 
-                    "C:/Users/Moi/Pictures/robot.jpg";          
-            try {
-                ImageIcon icon = new ImageIcon(iconPath);
-                Image scaledIcon = icon.getImage().getScaledInstance(30, 30, Image.SCALE_SMOOTH);
-                iconLabel.setIcon(new ImageIcon(scaledIcon));
-            } catch (Exception e) {
-                System.err.println("Error loading icon: " + e.getMessage());
-            }
-
-            iconLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
-            opponentPanel.add(iconLabel);
-            opponentPanel.add(Box.createVerticalStrut(10));
-
-            // Cards display (vertical stack)
-            CustomPanel cardsPanel = new CustomPanel();
-            cardsPanel.setLayout(new VerticalPileLayout());
-            cardsPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
-
-            opponentPanel.add(cardsPanel);
-
-            // Store references to update later
-            opponentPanels[i] = opponentPanel;
-            opponentLabels[i] = nameLabel;
-            opponentCardPanels[i] = cardsPanel;
-
-            contentPanel.add(opponentPanel);
-            contentPanel.add(Box.createVerticalGlue());
-        }
-
-        // Wrap with ScrollPaneWrapper
-        ScrollPaneWrapper scrollPane = new ScrollPaneWrapper(contentPanel);
-        scrollPane.setHorizontalScrollBarPolicy(ScrollPaneWrapper.HORIZONTAL_SCROLLBAR_NEVER);
-        scrollPane.setVerticalScrollBarPolicy(ScrollPaneWrapper.VERTICAL_SCROLLBAR_AS_NEEDED);
-        scrollPane.setBorder(null);
-        scrollPane.setScrollIncrement(12);  // For smoother scrolling
-
-        containerPanel.add(scrollPane, BorderLayout.CENTER);
-
-        return containerPanel;
-    }
-
-
-    
-    /**
-     * Updates all display elements based on current game state
-     */
-    public void updateDisplay() {
-        updateCurrentPlayerInfo();
-        updateDiscardPile();
-        updateHandDisplay();
-        updateOpponentHands();
-    }
-    
-    /**
-     * Updates the current player information
-     */
-    private void updateCurrentPlayerInfo() {
-        currentPlayer = players.get(currentPlayerIndex);
-        currentPlayerLabel.setText(currentPlayer.getName() + "'s Turn");
-        
-        // Update player icon
-        String iconPath = currentPlayer.getType() == Player.PlayerType.HUMAN ? 
-        		"C:/Users/Moi/Pictures/human.jpg" : "C:/Users/Moi/Pictures/robot.jpg";
-        try {
-            ImageIcon icon = new ImageIcon(iconPath);
-            Image scaledIcon = icon.getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH);
-            currentPlayerIcon.setIcon(new ImageIcon(scaledIcon));
-        } catch (Exception e) {
-            System.err.println("Error loading icon: " + e.getMessage());
-        }
-    }
-    
-    /**
-     * Updates the discard pile display
-     */
-    private void updateDiscardPile() {
+        // Check if the drawn card can be played immediately
         Card topCard = game.getTopCard();
-        if (topCard != null) {
-            discardPileComponent.setCard(topCard);
-        }
-    }
-    
-    /**
-     * Updates the current player's hand display
-     */
-    private void updateHandDisplay() {
-        handPanel.removeAll();
-        
-        for (Card card : currentPlayer.getHand()) {
-            CardComponent cardComponent = new CardComponent(card);
-            cardComponent.addMouseListener(createCardClickListener(card));
-            handPanel.add(cardComponent);
-        }
-        
-        handPanel.revalidate();
-        handPanel.repaint();
-    }
-    
-    /**
-     * Updates all opponent hand displays
-     */
-    private void updateOpponentHands() {
-        if (opponentCardPanels == null) return;
-        
-        int opponentCount = 0;
-        for (int i = 1; i < players.size(); i++) {
-            int playerIndex = (currentPlayerIndex + i) % players.size();
-            Player opponent = players.get(playerIndex);
-            
-            if (opponentCount < opponentCardPanels.length) {
-                CustomPanel cardPanel = opponentCardPanels[opponentCount];
-                cardPanel.removeAll();
-                
-                // Add card backs for each card in opponent's hand
-                for (int j = 0; j < opponent.getHand().size(); j++) {
-                    CardComponent opponentCard = new CardComponent(null, true);
-                    opponentCard.setPreferredSize(new Dimension(60, 90));
-                    cardPanel.add(opponentCard);
+
+        if (drawnCard.canPlayOn(topCard)) {
+            // Ask if player wants to play the drawn card
+            int response = JOptionPane.showConfirmDialog(
+                this,
+                "Do you want to play the drawn card (" + drawnCard + ")?",
+                "Play Drawn Card",
+                JOptionPane.YES_NO_OPTION
+            );
+
+            if (response == JOptionPane.YES_OPTION) {
+                // Remove the card from hand
+                for (int i = 0; i < currentPlayer.getHand().size(); i++) {
+                    if (currentPlayer.getHand().get(i).equals(drawnCard)) {
+                        currentPlayer.getHand().remove(i);
+                        break;
+                    }
                 }
-                
-                cardPanel.revalidate();
-                cardPanel.repaint();
-                
-                // Update opponent name
-                opponentLabels[opponentCount].setText(opponent.getName() + " (" + opponent.getHand().size() + ")");
-            }
-            
-            opponentCount++;
-        }
-    }
-    
-    /**
-     * Creates a mouse listener for handling card clicks
-     */
-    private MouseListener createCardClickListener(Card card) {
-        return new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                handleCardPlay(card);
-            }
-        };
-    }
-    
-    /**
-     * Handles playing a card
-     */
-    private void handleCardPlay(Card card) {
-        Card topCard = game.getTopCard();
-        
-        if (card.canPlayOn(topCard)) {
-            // Find card index in player's hand
-            int cardIndex = -1;
-            for (int i = 0; i < currentPlayer.getHand().size(); i++) {
-                if (currentPlayer.getHand().get(i) == card) {
-                    cardIndex = i;
-                    break;
-                }
-            }
-            
-            if (cardIndex >= 0) {
-                Card playedCard = currentPlayer.playCard(cardIndex);
 
                 // Handle wild card color selection
-                if (card.getColor() == Card.Color.WILD) {
-                    showColorPicker(playedCard);
+                if (drawnCard.getColor() == Card.Color.WILD) {
+                    showColorPicker(drawnCard);
                 }
-                
+
                 // Play the card
-                game.playCard(playedCard);
-                
+                game.playCard(drawnCard);
+
                 // Show effect text for special cards
-                if (isSpecialCard(card)) {
-                    showFloatingText(currentPlayer.getName() + " played " + card.getValue() + "!");
+                if (isSpecialCard(drawnCard)) {
+                    showFloatingText(currentPlayer.getName() + " played " + drawnCard.getValue() + "!");
                 }
-                
+
                 // Check for win condition
-                if (currentPlayer.hasWon()) {
+                if (currentPlayer.getHand().isEmpty()) {
                     showDialogMessage(currentPlayer.getName() + " wins the game!");
                     showWinnerScreen(currentPlayer.getName());
                     return;
                 }
-                
-                // Move to next player after processing any special card effects
+
                 moveToNextPlayer();
                 updateDisplay();
+
+                // If next player is a bot, perform bot move after a short delay
+                if (currentPlayer.getType() == Player.PlayerType.BOT) {
+                    javax.swing.Timer timer = new javax.swing.Timer(1000, new ActionListener() {
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            performBotMove();
+                        }
+                    });
+                    timer.setRepeats(false);
+                    timer.start();
+                }
             }
-        } else {
-            showDialogMessage("Invalid move! This card cannot be played on the current top card.");
         }
+    } else {
+        showDialogMessage("No more cards in the deck!");
     }
-    
-    /**
-     * Handles drawing a card
-     */
-    private void handleDrawCard() {
-    	Card drawnCard = game.playerDrawsCard(currentPlayer);
-        if (drawnCard != null) {
-            currentPlayer.addCard(drawnCard);
+}
+
+
+
+/**
+
+* Shows color picker dialog for wild cards
+
+*/
+
+private void showColorPicker(Card wildCard) {
+
+String[] colors = {"RED", "GREEN", "BLUE", "YELLOW"};
+
+Object chosen = JOptionPane.showInputDialog(
+
+this,
+
+"Choose a color:",
+
+"Wild Card Color Selection",
+
+JOptionPane.QUESTION_MESSAGE,
+
+null,
+
+colors,
+
+colors[0]
+
+);
+
+
+if (chosen != null) {
+
+wildCard.setColor(Card.Color.valueOf((String)chosen));
+
+} else {
+
+//Default to RED if dialog is canceled
+
+wildCard.setColor(Card.Color.RED);
+
+}
+
+}
+
+
+/**
+
+* Shows floating text for special card effects
+
+*/
+
+private void showFloatingText(String text) {
+
+JDialog dialog = new JDialog();
+
+dialog.setUndecorated(true);
+
+dialog.setBackground(new Color(0, 0, 0, 0));
+
+dialog.setAlwaysOnTop(true);
+
+
+JLabel label = new JLabel(text);
+
+label.setFont(new Font("Arial", Font.BOLD, 24));
+
+label.setForeground(Color.WHITE);
+
+label.setBackground(new Color(0, 0, 0, 150));
+
+label.setOpaque(true);
+
+label.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+
+
+dialog.add(label);
+
+dialog.pack();
+
+
+//Center the dialog on the screen
+
+Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+
+dialog.setLocation(
+
+(screenSize.width - dialog.getWidth()) / 2,
+
+(screenSize.height - dialog.getHeight()) / 2
+
+);
+
+
+dialog.setVisible(true);
+
+
+//Hide the dialog after a delay
+
+Timer timer = new Timer(2000, new ActionListener() {
+
+@Override
+
+public void actionPerformed(ActionEvent e) {
+
+dialog.dispose();
+
+}
+
+});
+
+timer.setRepeats(false);
+
+timer.start();
+
+}
+
+
+/**
+
+* Displays a dialog message
+
+*/
+
+private void showDialogMessage(String message) {
+
+JOptionPane.showMessageDialog(this, message);
+
+}
+
+
+/**
+
+* Handles UNO button click
+
+*/
+
+public void handleUnoButtonClick() {
+
+if (unoButtonEnabled && currentPlayer.getHand().size() == 1) {
+
+showFloatingText(currentPlayer.getName() + " says UNO!");
+
+
+//Mark that the player has called "UNO"
+
+currentPlayer.setHasCalledUno(true);
+
+
+//Disable the UNO button for 2 seconds
+
+unoButtonEnabled = false;
+
+unoButton.setEnabled(false);
+
+
+Timer timer = new Timer(2000, new ActionListener() {
+
+@Override
+
+public void actionPerformed(ActionEvent e) {
+
+unoButtonEnabled = true;
+
+unoButton.setEnabled(true);
+
+}
+
+});
+
+timer.setRepeats(false);
+
+timer.start();
+
+}
+
+}
+
+
+/**
+
+* Shows the winner screen
+
+*/
+
+public void showWinnerScreen(String winnerName) {
+    // Get the current window frame (the game board view)
+    JFrame currentFrame = (JFrame) SwingUtilities.getWindowAncestor(this);
+
+    // Close the current window (game board view)
+    if (currentFrame != null) {
+        currentFrame.dispose();
+    }
+
+    // Create a new JFrame for the winner screen
+    JFrame winnerFrame = new JFrame("Winner - UNO Game");
+
+    // Set layout for the winner screen
+    winnerFrame.setLayout(new BorderLayout());
+
+    // Create a panel to hold the winner's name message
+    JPanel winnerPanel = new JPanel();
+    winnerPanel.setLayout(new FlowLayout());
+    winnerPanel.add(new JLabel("Félicitations " + winnerName + ", vous avez gagné !"));
+
+    // Add the winner panel to the frame
+    winnerFrame.add(winnerPanel, BorderLayout.CENTER);
+
+    // Add a button to close the game or restart
+    JButton closeButton = new JButton("Fermer le jeu");
+    closeButton.addActionListener(e -> {
+        // Close the winner screen when the button is clicked
+        winnerFrame.dispose();
+    });
+
+    // Add the button to the bottom of the frame
+    winnerFrame.add(closeButton, BorderLayout.SOUTH);
+
+    // Set window properties
+    winnerFrame.setSize(300, 150);
+    winnerFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    winnerFrame.setLocationRelativeTo(null); // Center the window on the screen
+
+    // Make the winner screen visible
+    winnerFrame.setVisible(true);
+}
+
+
+
+//Create and show the winner view
+
+WinnerView winnerView = new WinnerView();
+);
+
+winnerView.setVisible(true);
+
+}
+
+
+
+/**
+
+* Moves to the next player in sequence
+
+*/
+
+public void moveToNextPlayer() {
+
+int direction = game.isClockwise() ? 1 : -1;
+
+currentPlayerIndex = (currentPlayerIndex + direction + players.size()) % players.size();
+
+currentPlayer = players.get(currentPlayerIndex);
+
+
+//Reset hasCalledUno for the new player
+
+currentPlayer.setHasCalledUno(false);
+
+}
+
+
+/**
+
+* Checks if a card is a special action card
+
+*/
+
+public boolean isSpecialCard(Card card) {
+
+return card.getValue() == Card.Value.SKIP ||
+
+card.getValue() == Card.Value.REVERSE ||
+
+card.getValue() == Card.Value.DRAW_TWO ||
+
+card.getValue() == Card.Value.WILD_DRAW_FOUR;
+
+}
+
+
+
+
+/**
+
+* Performs a move for a bot player
+
+*/
+
+private void performBotMove() {
+    if (currentPlayer.getType() != Player.PlayerType.BOT) return;
+
+    Card topCard = game.getTopCard();
+    List<Card> hand = currentPlayer.getHand();
+    boolean[] played = { false }; // Moved outside the timer so it's accessible for the entire method
+
+    showFloatingText(currentPlayer.getName() + " is thinking...");
+
+    // Simulate a delay for the "thinking" effect
+    Timer thinkingTimer = new Timer(1000, new ActionListener() {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            for (int i = 0; i < hand.size(); i++) {
+                Card card = hand.get(i);
+                if (card.canPlayOn(topCard)) {
+                    Card playedCard = currentPlayer.playCard(i);
+
+                    if (playedCard.getColor() == Card.Color.WILD) {
+                        int[] colorCounts = new int[4]; // RED, GREEN, BLUE, YELLOW
+                        for (Card c : hand) {
+                            if (c.getColor() != Card.Color.WILD) {
+                                colorCounts[c.getColor().ordinal()]++;
+                            }
+                        }
+
+                        int maxIndex = 0;
+                        for (int j = 1; j < colorCounts.length; j++) {
+                            if (colorCounts[j] > colorCounts[maxIndex]) {
+                                maxIndex = j;
+                            }
+                        }
+
+                        Card.Color chosenColor = Card.Color.values()[maxIndex];
+                        if (chosenColor == Card.Color.WILD) {
+                            chosenColor = Card.Color.RED;
+                        }
+
+                        playedCard.setColor(chosenColor);
+                        showFloatingText(currentPlayer.getName() + " chose " + chosenColor);
+                    }
+
+                    game.playCard(playedCard);
+
+                    // Handle UNO
+                    if (currentPlayer.getHand().size() == 1) {
+                        if (Math.random() < 0.85) {
+                            showFloatingText(currentPlayer.getName() + " says UNO!");
+                            currentPlayer.setHasCalledUno(true);
+                        } else {
+                            showFloatingText(currentPlayer.getName() + " forgot to say UNO!");
+                            for (int j = 0; j < 2; j++) {
+                                Card penaltyCard = game.playerDrawsCard(currentPlayer);
+                                if (penaltyCard != null) {
+                                    currentPlayer.addCard(penaltyCard);
+                                }
+                            }
+                        }
+                    }
+
+                    if (isSpecialCard(playedCard)) {
+                        showFloatingText(currentPlayer.getName() + " played " + playedCard.getValue() + "!");
+                    } else {
+                        showFloatingText(currentPlayer.getName() + " played " + playedCard);
+                    }
+
+                    if (currentPlayer.hasWon()) {
+                        showDialogMessage(currentPlayer.getName() + " wins the game!");
+                        showWinnerScreen(currentPlayer.getName());
+                        return;
+                    }
+
+                    played[0] = true; // Mark that a card was played
+                    break; // Exit loop once a card is played
+                }
+            }
+
+            if (!played[0]) {
+                showFloatingText(currentPlayer.getName() + " draws a card");
+
+                Card drawnCard = game.playerDrawsCard(currentPlayer);
+                if (drawnCard != null) {
+                    currentPlayer.addCard(drawnCard);
+
+                    if (drawnCard.canPlayOn(topCard)) {
+                        currentPlayer.getHand().remove(drawnCard);
+
+                        if (drawnCard.getColor() == Card.Color.WILD) {
+                            int[] colorCounts = new int[4];
+                            for (Card c : currentPlayer.getHand()) {
+                                if (c.getColor() != Card.Color.WILD) {
+                                    colorCounts[c.getColor().ordinal()]++;
+                                }
+                            }
+
+                            int maxIndex = 0;
+                            for (int j = 1; j < colorCounts.length; j++) {
+                                if (colorCounts[j] > colorCounts[maxIndex]) {
+                                    maxIndex = j;
+                                }
+                            }
+
+                            Card.Color chosenColor = Card.Color.values()[maxIndex];
+                            if (chosenColor == Card.Color.WILD) {
+                                chosenColor = Card.Color.RED;
+                            }
+
+                            drawnCard.setColor(chosenColor);
+                            showFloatingText(currentPlayer.getName() + " chose " + chosenColor);
+                        }
+
+                        game.playCard(drawnCard);
+
+                        if (currentPlayer.getHand().size() == 1) {
+                            if (Math.random() < 0.85) {
+                                showFloatingText(currentPlayer.getName() + " says UNO!");
+                                currentPlayer.setHasCalledUno(true);
+                            } else {
+                                showFloatingText(currentPlayer.getName() + " forgot to say UNO!");
+                                for (int j = 0; j < 2; j++) {
+                                    Card penaltyCard = game.playerDrawsCard(currentPlayer);
+                                    if (penaltyCard != null) {
+                                        currentPlayer.addCard(penaltyCard);
+                                    }
+                                }
+                            }
+                        }
+
+                        if (isSpecialCard(drawnCard)) {
+                            showFloatingText(currentPlayer.getName() + " played " + drawnCard.getValue() + "!");
+                        } else {
+                            showFloatingText(currentPlayer.getName() + " played " + drawnCard);
+                        }
+
+                        if (currentPlayer.hasWon()) {
+                            showDialogMessage(currentPlayer.getName() + " wins the game!");
+                            showWinnerScreen(currentPlayer.getName());
+                            return;
+                        }
+                    }
+                }
+            }
+
             moveToNextPlayer();
             updateDisplay();
-        } else {
-            showDialogMessage("No more cards in the deck!");
-        }
-    }
-    
-    /**
-     * Shows color picker dialog for wild cards
-     */
-    private void showColorPicker(Card wildCard) {
-        String[] colors = {"RED", "GREEN", "BLUE", "YELLOW"};
-        Object chosen = DialogHelper.showInputDialog(
-            this,
-            "Choose a color:",
-            "Wild Card Color Selection",
-            DialogHelper.QUESTION_MESSAGE,
-            null,
-            colors,
-            colors[0]
-        );
-        
-        if (chosen != null) {
-            wildCard.setColor(Card.Color.valueOf((String)chosen));
-        } else {
-            // Default to RED if dialog is canceled
-            wildCard.setColor(Card.Color.RED);
-        }
-    }
-    
-    /**
-     * Shows floating text for special card effects
-     */
-    private void showFloatingText(String text) {
-        FloatingTextDialog dialog = new FloatingTextDialog(text);
-        dialog.showFor(2000);
-    }
-    
-    /**
-     * Displays a dialog message
-     */
-    private void showDialogMessage(String message) {
-        DialogHelper.showMessageDialog(this, message);
-    }
-    
-    /**
-     * Handles UNO button click
-     */
-    public void handleUnoButtonClick() {
-        if (unoButtonEnabled && currentPlayer.getHand().size() == 1) {
-            showFloatingText(currentPlayer.getName() + " says UNO!");
-            
-            // Disable UNO button for 2 seconds
-            unoButtonEnabled = false;
-            unoButton.setEnabled(false);
-            
-            Timer timer = new Timer();
-            timer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    unoButtonEnabled = true;
-                    unoButton.setEnabled(true);
-                }
-            }, 2000);
-        }
-    }
-    
-    /**
-     * Shows the winner screen
-     */
-    public void showWinnerScreen(String winnerName) {
-        Container frame = SwingUtilities.getWindowAncestor(this);
-        if (frame instanceof Window) {
-            ((Window)frame).dispose();
-        }
-        
-        new WinnerView(winnerName);
-    }
-    
-    /**
-     * Moves to the next player in sequence
-     */
-    public void moveToNextPlayer() {
-        if (game.isClockwise()) {
-            currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
-        } else {
-            currentPlayerIndex = (currentPlayerIndex - 1 + players.size()) % players.size();
-        }
-        currentPlayer = players.get(currentPlayerIndex);
-    }
-    
-    /**
-     * Checks if a card is a special action card
-     */
-    public boolean isSpecialCard(Card card) {
-        return card.getValue() == Card.Value.SKIP || 
-               card.getValue() == Card.Value.REVERSE || 
-               card.getValue() == Card.Value.DRAW_TWO || 
-               card.getValue() == Card.Value.WILD_DRAW_FOUR;
-    }
-    
-    /**
-     * Custom layout manager for pile-style card display
-     */
-    class PileLayout implements LayoutManager {
-        private static final int CARD_WIDTH = 100;
-        private static final int CARD_HEIGHT = 150;
-        private static final int OVERLAP = 20;
-        
-        @Override
-        public void addLayoutComponent(String name, Component comp) {}
-        
-        @Override
-        public void removeLayoutComponent(Component comp) {}
-        
-        @Override
-        public Dimension preferredLayoutSize(Container parent) {
-            int componentCount = parent.getComponentCount();
-            if (componentCount == 0) return new Dimension(0, CARD_HEIGHT);
-            
-            int width = OVERLAP * (componentCount - 1) + CARD_WIDTH;
-            return new Dimension(width, CARD_HEIGHT);
-        }
-        
-        @Override
-        public Dimension minimumLayoutSize(Container parent) {
-            return preferredLayoutSize(parent);
-        }
-        
-        @Override
-        public void layoutContainer(Container parent) {
-            int componentCount = parent.getComponentCount();
-            
-            for (int i = 0; i < componentCount; i++) {
-                Component c = parent.getComponent(i);
-                c.setBounds(i * OVERLAP, 0, CARD_WIDTH, CARD_HEIGHT);
+
+            if (currentPlayer.getType() == Player.PlayerType.BOT) {
+                Timer timer = new Timer(1000, new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        performBotMove(); // Call performBotMove recursively for the next bot move
+                    }
+                });
+                timer.setRepeats(false);
+                timer.start();
             }
         }
-    }
-    
-    /**
-     * Custom layout manager for vertical pile-style card display
-     */
-    class VerticalPileLayout implements LayoutManager {
-        private static final int CARD_WIDTH = 60;
-        private static final int CARD_HEIGHT = 90;
-        private static final int OVERLAP = 15;
-        
-        @Override
-        public void addLayoutComponent(String name, Component comp) {}
-        
-        @Override
-        public void removeLayoutComponent(Component comp) {}
-        
-        @Override
-        public Dimension preferredLayoutSize(Container parent) {
-            int componentCount = parent.getComponentCount();
-            if (componentCount == 0) return new Dimension(CARD_WIDTH, 0);
-            
-            int height = OVERLAP * (componentCount - 1) + CARD_HEIGHT;
-            return new Dimension(CARD_WIDTH, height);
-        }
-        
-        @Override
-        public Dimension minimumLayoutSize(Container parent) {
-            return preferredLayoutSize(parent);
-        }
-        
-        @Override
-        public void layoutContainer(Container parent) {
-            int componentCount = parent.getComponentCount();
-            
-            for (int i = 0; i < componentCount; i++) {
-                Component c = parent.getComponent(i);
-                c.setBounds(0, i * OVERLAP, CARD_WIDTH, CARD_HEIGHT);
-            }
-        }
-    }
-    private void initOpponentPanels() {
-        int totalPlayers = players.size();
-        int opponentCount = totalPlayers - 1;
+    });
 
-        opponentPanels = new CustomPanel[opponentCount];
-        opponentLabels = new CustomLabel[opponentCount];
-        opponentCardPanels = new CustomPanel[opponentCount];
-
-        int j = 0;
-        for (int i = 0; i < totalPlayers; i++) {
-            if (i != currentPlayerIndex) {
-                CustomPanel opponentPanel = new CustomPanel();
-                opponentPanel.setLayout(new BoxLayout(opponentPanel, BoxLayout.Y_AXIS));
-                
-                CustomLabel nameLabel = new CustomLabel(players.get(i).getName());
-                CustomPanel cardPanel = new CustomPanel();
-                cardPanel.setLayout(new FlowLayout());
-
-                opponentPanels[j] = opponentPanel;
-                opponentLabels[j] = nameLabel;
-                opponentCardPanels[j] = cardPanel;
-
-                opponentPanel.add(nameLabel);
-                opponentPanel.add(cardPanel);
-
-                j++;
-            }
-        }
-    }
-
-
-   
+    thinkingTimer.setRepeats(false);
+    thinkingTimer.start();
 }
+}
+
+
