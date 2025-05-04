@@ -199,6 +199,7 @@ return panel;
 
 
 
+
 /**
 
 * Creates the center panel with discard pile, draw pile
@@ -206,79 +207,250 @@ return panel;
 */
 
 private CustomPanel createCenterPanel() {
+    CustomPanel panel = new CustomPanel(new FlowLayout(FlowLayout.CENTER, 50, 0));
 
-CustomPanel panel = new CustomPanel(new FlowLayout(FlowLayout.CENTER, 50, 0));
+    // Discard pile
+    Card topCard = game.getTopCard();
+    discardPileComponent = new CardComponent(topCard);
+    discardPileComponent.setPreferredSize(new Dimension(120, 180));
+   
+    discardPileComponent.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            GameBoardPage.this.handleDrawCard(); // 👈 fix here
+        }
+    });
 
+    CustomLabel discardLabel = new CustomLabel("Discard Pile");
+    discardLabel.setForeground(Color.WHITE);
 
-// Discard pile
+    CustomPanel discardPanel = new CustomPanel();
+    discardPanel.setLayout(new BoxLayout(discardPanel, BoxLayout.Y_AXIS));
+    discardPanel.add(discardPileComponent);
+    discardPanel.add(Box.createVerticalStrut(10));
+    discardPanel.add(discardLabel);
 
-Card topCard = game.getTopCard();
+    panel.add(discardPanel);
 
-discardPileComponent = new CardComponent(topCard);
+    // Draw pile
+    drawPileComponent = new CardComponent(null, true); // Using the back of the card
+    drawPileComponent.setPreferredSize(new Dimension(120, 180));
+    drawPileComponent.addMouseListener(new MouseAdapter() {
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            handleDrawCard();
+        }
 
-discardPileComponent.setPreferredSize(new Dimension(120, 180));
+        private void handleDrawCard() {
+            // Only allow the current player to draw cards
+            if (currentPlayer.getType() != Player.PlayerType.HUMAN) {
+                return;
+            }
 
+            Card drawnCard = game.playerDrawsCard(currentPlayer);
 
-CustomLabel discardLabel = new CustomLabel("Discard Pile");
+            if (drawnCard != null) {
+                currentPlayer.addCard(drawnCard);
+                showFloatingText(currentPlayer.getName() + " drew a card");
 
-discardLabel.setForeground(Color.WHITE);
+                // Update the display to show the new card
+                updateDisplay();
 
+                // Check if the drawn card can be played immediately
+                Card topCard = game.getTopCard();
 
-CustomPanel discardPanel = new CustomPanel();
+                if (drawnCard.canPlayOn(topCard)) {
+                    // Ask if player wants to play the drawn card
+                    int response = JOptionPane.showConfirmDialog(
+                    	    centerPanel, // or any visible component in your interface
+                    	    "Do you want to play the drawn card (" + drawnCard + ")?",
+                    	    "Play Drawn Card",
+                    	    JOptionPane.YES_NO_OPTION
+                    	);
 
-discardPanel.setLayout(new BoxLayout(discardPanel, BoxLayout.Y_AXIS));
+                    if (response == JOptionPane.YES_OPTION) {
+                        // Remove the card from hand
+                        for (int i = 0; i < currentPlayer.getHand().size(); i++) {
+                            Card c = currentPlayer.getHand().get(i);
+                            if (c.equals(drawnCard)) {
+                                currentPlayer.getHand().remove(i);
+                                break;
+                            }
+                        }
 
-discardPanel.add(discardPileComponent);
+                        // Handle wild card color selection
+                        if (drawnCard.getColor() == Card.Color.WILD) {
+                            showColorPicker(drawnCard);
+                        }
 
-discardPanel.add(Box.createVerticalStrut(10));
+                        // Play the card
+                        game.playCard(drawnCard);
 
-discardPanel.add(discardLabel);
+                        // Show effect text for special cards
+                        if (isSpecialCard(drawnCard)) {
+                            showFloatingText(currentPlayer.getName() + " played " + drawnCard.getValue() + "!");
+                        }
 
+                        // Check for win condition
+                        if (currentPlayer.getHand().isEmpty()) {
+                            showDialogMessage(currentPlayer.getName() + " wins the game!");
+                            showWinnerScreen(currentPlayer.getName());
+                            return;
+                        }
 
-panel.add(discardPanel);
+                        moveToNextPlayer();
+                        updateDisplay();
 
+                        // If next player is a bot, perform bot move after a short delay
+                        if (currentPlayer.getType() == Player.PlayerType.BOT) {
+                            Timer timer = new Timer(1000, new ActionListener() {
+                                @Override
+                                public void actionPerformed(ActionEvent e) {
+                                    performBotMove();
+                                }
+                            });
+                            timer.setRepeats(false);
+                            timer.start();
+                        }
+                    } else {
+                        // Player chose not to play the drawn card, move to next player
+                        moveToNextPlayer();
+                        updateDisplay();
+                        
+                        // If next player is a bot, perform bot move after a short delay
+                        if (currentPlayer.getType() == Player.PlayerType.BOT) {
+                            Timer timer = new Timer(1000, new ActionListener() {
+                                @Override
+                                public void actionPerformed(ActionEvent e) {
+                                    performBotMove();
+                                }
+                            });
+                            timer.setRepeats(false);
+                            timer.start();
+                        }
+                    }
+                } else {
+                    // Drawn card can't be played, move to next player
+                    moveToNextPlayer();
+                    updateDisplay();
+                    
+                    // If next player is a bot, perform bot move after a short delay
+                    if (currentPlayer.getType() == Player.PlayerType.BOT) {
+                        Timer timer = new Timer(1000, new ActionListener() {
+                            @Override
+                            public void actionPerformed(ActionEvent e) {
+                                performBotMove();
+                            }
+                        });
+                        timer.setRepeats(false);
+                        timer.start();
+                    }
+                }
+            } else {
+                showDialogMessage("No more cards in the deck!");
+            }
+        }
+    });
 
-// Draw pile
+    CustomLabel drawLabel = new CustomLabel("Draw Pile");
+    drawLabel.setForeground(Color.WHITE);
 
-drawPileComponent = new CardComponent(null, true); // Using the back of the card
+    CustomPanel drawPanel = new CustomPanel();
+    drawPanel.setLayout(new BoxLayout(drawPanel, BoxLayout.Y_AXIS));
+    drawPanel.add(drawPileComponent);
+    drawPanel.add(Box.createVerticalStrut(10));
+    drawPanel.add(drawLabel);
 
-drawPileComponent.setPreferredSize(new Dimension(120, 180));
+    panel.add(drawPanel);
 
-drawPileComponent.addMouseListener(new MouseAdapter() {
-
-@Override
-
-public void mouseClicked(MouseEvent e) {
-
-handleDrawCard();
-
+    return panel;
 }
 
-});
-
-
-CustomLabel drawLabel = new CustomLabel("Draw Pile");
-
-drawLabel.setForeground(Color.WHITE);
-
-
-CustomPanel drawPanel = new CustomPanel();
-
-drawPanel.setLayout(new BoxLayout(drawPanel, BoxLayout.Y_AXIS));
-
-drawPanel.add(drawPileComponent);
-
-drawPanel.add(Box.createVerticalStrut(10));
-
-drawPanel.add(drawLabel);
-
-
-panel.add(drawPanel);
-
-
-return panel;
-
+protected void handleDrawCard() {
+	// TODO Auto-generated method stub
+	
 }
+
+
+
+/**
+ * Handles playing a card
+ */
+private void handleCardPlay(Card card) {
+    // Only allow human players to play cards
+    if (currentPlayer.getType() != Player.PlayerType.HUMAN) {
+        return;
+    }
+
+    Card topCard = game.getTopCard();
+
+    if (card.canPlayOn(topCard)) {
+        // Find card index in player's hand
+        int cardIndex = -1;
+        for (int i = 0; i < currentPlayer.getHand().size(); i++) {
+            if (currentPlayer.getHand().get(i).equals(card)) {
+                cardIndex = i;
+                break;
+            }
+        }
+
+        if (cardIndex >= 0) {
+            Card playedCard = currentPlayer.playCard(cardIndex);
+
+            // Vérification de l'UNO oublié
+            if (currentPlayer.getHand().size() == 1 && !currentPlayer.hasCalledUno()) {
+                showFloatingText("UNO oublié ! +2 cartes pour " + currentPlayer.getName());
+
+                // Donner une pénalité : tirer 2 cartes
+                for (int i = 0; i < 2; i++) {
+                    Card penaltyCard = game.playerDrawsCard(currentPlayer);
+                    if (penaltyCard != null) {
+                        currentPlayer.addCard(penaltyCard);
+                    }
+                }
+            }
+
+            // Handle wild card color selection
+            if (playedCard.getColor() == Card.Color.WILD) {
+                showColorPicker(playedCard);
+            }
+
+            // Play the card
+            game.playCard(playedCard);
+
+            // Show effect text for special cards
+            if (isSpecialCard(playedCard)) {
+                showFloatingText(currentPlayer.getName() + " played " + playedCard.getValue() + "!");
+            }
+
+            // Check for win condition
+            if (currentPlayer.hasWon()) {
+                showDialogMessage(currentPlayer.getName() + " wins the game!");
+                showWinnerScreen(currentPlayer.getName());
+                return;
+            }
+
+            // Move to next player after processing any special card effects
+            moveToNextPlayer();
+            updateDisplay();
+
+            // If next player is a bot, perform bot move after a short delay
+            if (currentPlayer.getType() == Player.PlayerType.BOT) {
+                Timer timer = new Timer(1000, new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        performBotMove();
+                    }
+                });
+                timer.setRepeats(false);
+                timer.start();
+            }
+        }
+    } else {
+        showDialogMessage("Invalid move! This card cannot be played on the current top card.");
+    }
+}
+
 
 
 
@@ -660,219 +832,6 @@ handleCardPlay(card);
 
 */
 
-private void handleCardPlay(Card card) {
-
-// Only allow human players to play cards
-
-if (currentPlayer.getType() != Player.PlayerType.HUMAN) {
-
-return;
-
-}
-
-
-Card topCard = game.getTopCard();
-
-
-if (card.canPlayOn(topCard)) {
-
-// Find card index in player's hand
-
-int cardIndex = -1;
-
-for (int i = 0; i < currentPlayer.getHand().size(); i++) {
-
-if (currentPlayer.getHand().get(i).equals(card)) {
-
-cardIndex = i;
-
-break;
-
-}
-
-}
-
-
-if (cardIndex >= 0) {
-
-Card playedCard = currentPlayer.playCard(cardIndex);
-
-
-// Vérification de l'UNO oublié
-
-if (currentPlayer.getHand().size() == 1 && !currentPlayer.hasCalledUno()) {
-
-showFloatingText("UNO oublié ! +2 cartes pour " + currentPlayer.getName());
-
-
-// Donner une pénalité : tirer 2 cartes
-
-for (int i = 0; i < 2; i++) {
-
-Card penaltyCard = game.playerDrawsCard(currentPlayer);
-
-if (penaltyCard != null) {
-
-currentPlayer.addCard(penaltyCard);
-
-}
-
-}
-
-}
-
-
-
-// Handle wild card color selection
-
-if (card.getColor() == Card.Color.WILD) {
-
-showColorPicker(playedCard);
-
-}
-
-
-// Play the card
-
-game.playCard(playedCard);
-
-
-// Show effect text for special cards
-
-if (isSpecialCard(card)) {
-
-showFloatingText(currentPlayer.getName() + " played " + card.getValue() + "!");
-
-}
-
-
-// Check for win condition
-
-if (currentPlayer.hasWon()) {
-
-showDialogMessage(currentPlayer.getName() + " wins the game!");
-
-showWinnerScreen(currentPlayer.getName());
-
-return;
-
-}
-
-
-// Move to next player after processing any special card effects
-
-moveToNextPlayer();
-
-updateDisplay();
-
-
-// If next player is a bot, perform bot move after a short delay
-
-if (currentPlayer.getType() == Player.PlayerType.BOT) {
-
-Timer timer = new Timer(1000, new ActionListener() {
-
-@Override
-
-public void actionPerformed(ActionEvent e) {
-
-performBotMove();
-
-}
-
-});
-
-timer.setRepeats(false);
-
-timer.start();
-
-}
-
-}
-
-} else {
-
-showDialogMessage("Invalid move! This card cannot be played on the current top card.");
-
-}
-
-}
-
-
-private void handleDrawCard() {
-    // Only allow the current player to draw cards
-    if (currentPlayer.getType() != Player.PlayerType.HUMAN) {
-        return;
-    }
-
-    Card drawnCard = game.playerDrawsCard(currentPlayer);
-
-    if (drawnCard != null) {
-        currentPlayer.addCard(drawnCard);
-        showFloatingText(currentPlayer.getName() + " drew a card");
-
-        // Check if the drawn card can be played immediately
-        Card topCard = game.getTopCard();
-
-        if (drawnCard.canPlayOn(topCard)) {
-            // Ask if player wants to play the drawn card
-            int response = JOptionPane.showConfirmDialog(
-                this,
-                "Do you want to play the drawn card (" + drawnCard + ")?",
-                "Play Drawn Card",
-                JOptionPane.YES_NO_OPTION
-            );
-
-            if (response == JOptionPane.YES_OPTION) {
-                // Remove the card from hand
-                for (int i = 0; i < currentPlayer.getHand().size(); i++) {
-                    if (currentPlayer.getHand().get(i).equals(drawnCard)) {
-                        currentPlayer.getHand().remove(i);
-                        break;
-                    }
-                }
-
-                // Handle wild card color selection
-                if (drawnCard.getColor() == Card.Color.WILD) {
-                    showColorPicker(drawnCard);
-                }
-
-                // Play the card
-                game.playCard(drawnCard);
-
-                // Show effect text for special cards
-                if (isSpecialCard(drawnCard)) {
-                    showFloatingText(currentPlayer.getName() + " played " + drawnCard.getValue() + "!");
-                }
-
-                // Check for win condition
-                if (currentPlayer.getHand().isEmpty()) {
-                    showDialogMessage(currentPlayer.getName() + " wins the game!");
-                    showWinnerScreen(currentPlayer.getName());
-                    return;
-                }
-
-                moveToNextPlayer();
-                updateDisplay();
-
-                // If next player is a bot, perform bot move after a short delay
-                if (currentPlayer.getType() == Player.PlayerType.BOT) {
-                    javax.swing.Timer timer = new javax.swing.Timer(1000, new ActionListener() {
-                        @Override
-                        public void actionPerformed(ActionEvent e) {
-                            performBotMove();
-                        }
-                    });
-                    timer.setRepeats(false);
-                    timer.start();
-                }
-            }
-        }
-    } else {
-        showDialogMessage("No more cards in the deck!");
-    }
-}
-
 
 
 /**
@@ -1067,52 +1026,18 @@ public void showWinnerScreen(String winnerName) {
         currentFrame.dispose();
     }
 
-    // Create a new JFrame for the winner screen
-    JFrame winnerFrame = new JFrame("Winner - UNO Game");
+    // Create and show the winner view, passing the winner's name
+    WinnerView winnerView = new WinnerView(winnerName);
+    winnerView.setVisible(true);
 
-    // Set layout for the winner screen
-    winnerFrame.setLayout(new BorderLayout());
 
-    // Create a panel to hold the winner's name message
-    JPanel winnerPanel = new JPanel();
-    winnerPanel.setLayout(new FlowLayout());
-    winnerPanel.add(new JLabel("Félicitations " + winnerName + ", vous avez gagné !"));
-
-    // Add the winner panel to the frame
-    winnerFrame.add(winnerPanel, BorderLayout.CENTER);
-
-    // Add a button to close the game or restart
-    JButton closeButton = new JButton("Fermer le jeu");
-    closeButton.addActionListener(e -> {
-        // Close the winner screen when the button is clicked
-        winnerFrame.dispose();
-    });
-
-    // Add the button to the bottom of the frame
-    winnerFrame.add(closeButton, BorderLayout.SOUTH);
-
-    // Set window properties
-    winnerFrame.setSize(300, 150);
-    winnerFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    winnerFrame.setLocationRelativeTo(null); // Center the window on the screen
-
-    // Make the winner screen visible
-    winnerFrame.setVisible(true);
+// This is how the win condition should be checked in methods like handleCardPlay:
+if (currentPlayer.hasWon()) {
+    showDialogMessage(currentPlayer.getName() + " wins the game!");
+    showWinnerScreen(currentPlayer.getName());
+    return;
 }
-
-
-
-//Create and show the winner view
-
-WinnerView winnerView = new WinnerView();
-);
-
-winnerView.setVisible(true);
-
 }
-
-
-
 /**
 
 * Moves to the next player in sequence
